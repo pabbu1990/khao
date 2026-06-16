@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import DashboardNav from "@/components/DashboardNav";
+import RealtimeRefresh from "@/components/RealtimeRefresh";
+import LiveStamp from "@/components/LiveStamp";
 import AddDishForm from "@/components/AddDishForm";
 import DishServiceSelect from "@/components/DishServiceSelect";
 import { toggleSoldOut, deleteDish } from "@/app/actions";
@@ -69,6 +71,8 @@ export default async function MenuPage() {
   return (
     <main className="min-h-screen bg-cream">
       <DashboardNav active="menu" />
+      <RealtimeRefresh vendorId={vendor.id} tables={["orders", "dishes", "services"]} />
+      <div className="px-5 pt-2"><LiveStamp at={Date.now()} /></div>
       <div className="mx-auto max-w-3xl px-4 py-5">
         <div className="flex items-baseline justify-between">
           <h1 className="font-display text-2xl font-bold text-ink">Menu</h1>
@@ -76,7 +80,7 @@ export default async function MenuPage() {
         </div>
 
         {services.length === 0 ? (
-          <div className="mt-4 rounded-xl bg-white p-6 text-center shadow-sm">
+          <div className="mt-4 rounded-xl bg-white p-6 text-center shadow-card">
             <p className="text-ink/70">Create a service first — every dish belongs to a service.</p>
             <Link href="/dashboard/services" className="mt-3 inline-block rounded-lg bg-spice px-4 py-2 font-semibold text-ink">
               Set up a service
@@ -117,7 +121,7 @@ export default async function MenuPage() {
 
 function DishRow({ d, services, today, open }: { d: Dish; services: { id: string; name: string }[]; today: number; open: number }) {
   return (
-    <div className="flex flex-wrap items-center gap-3 rounded-xl bg-white p-3 shadow-sm">
+    <div className="flex flex-wrap items-center gap-3 rounded-xl bg-white p-3 shadow-card">
       {d.photo_url && (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={d.photo_url} alt="" className="h-12 w-12 rounded-md object-cover" />

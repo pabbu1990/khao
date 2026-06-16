@@ -216,3 +216,6 @@ create policy reviews_public_insert on public.reviews for insert with check (tru
 
 -- realtime: include orders so the dashboard updates live
 alter publication supabase_realtime add table public.orders;
+alter publication supabase_realtime add table public.dishes;
+alter publication supabase_realtime add table public.services;
+alter publication supabase_realtime add table public.vendors;

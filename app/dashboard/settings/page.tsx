@@ -21,12 +21,12 @@ export default async function SettingsPage() {
       <div className="mx-auto max-w-2xl px-4 py-5">
         <h1 className="font-display text-2xl font-bold text-ink">Settings</h1>
 
-        <div className="mt-3 rounded-xl bg-white p-4 shadow-sm">
+        <div className="mt-3 rounded-xl bg-white p-4 shadow-card">
           <p className="text-sm text-ink/60">Your ordering link — share this in WhatsApp</p>
           <p className="font-semibold text-spice break-all">{link}</p>
         </div>
 
-        <form action={updateVendorSettings} className="mt-4 space-y-3 rounded-xl bg-white p-4 shadow-sm">
+        <form action={updateVendorSettings} className="mt-4 space-y-3 rounded-xl bg-white p-4 shadow-card">
           <Labeled label="Kitchen name"><input name="name" defaultValue={vendor.name} className="inp" /></Labeled>
           <Labeled label="Link name (your page address)"><input name="slug" defaultValue={vendor.slug} className="inp" /></Labeled>
           <Labeled label="Bio"><textarea name="bio" defaultValue={vendor.bio ?? ""} className="inp" /></Labeled>

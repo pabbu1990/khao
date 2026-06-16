@@ -6,8 +6,29 @@
   color-scheme: light;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  background: #fff;
+  background: #FBF6EE;
   color: #2A1810;
+  font-family: var(--font-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: rgba(224, 146, 47, 0.25);
+}
+
+/* Display serif refinement */
+.font-display {
+  letter-spacing: -0.02em;
+}
+
+@layer components {
+  .ui-input {
+    @apply w-full rounded-xl border border-line bg-white px-4 py-3 text-ink placeholder:text-ink/30 outline-none transition focus:border-spice focus:ring-4 focus:ring-spice/15;
+  }
 }

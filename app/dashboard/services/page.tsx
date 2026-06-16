@@ -29,7 +29,7 @@ export default async function ServicesPage() {
           show on your page. Leave days empty to show whenever active, or pick days to limit it (e.g. weekend only).
         </p>
 
-        <form action={addService} className="mt-4 space-y-3 rounded-xl bg-white p-4 shadow-sm">
+        <form action={addService} className="mt-4 space-y-3 rounded-xl bg-white p-4 shadow-card">
           <input name="name" required placeholder="Service name (e.g. Weekday Lunch)" className="w-full rounded-lg border border-ink/15 px-3 py-2" />
           <input name="description" placeholder="Short description (optional)" className="w-full rounded-lg border border-ink/15 px-3 py-2" />
           <div>
@@ -48,7 +48,7 @@ export default async function ServicesPage() {
         <div className="mt-5 space-y-2">
           {list.length === 0 && <p className="text-ink/50 py-6 text-center">No services yet — add one above, then add dishes to it under Menu.</p>}
           {list.map((s) => (
-            <div key={s.id} className="flex items-center gap-3 rounded-xl bg-white p-4 shadow-sm">
+            <div key={s.id} className="flex items-center gap-3 rounded-xl bg-white p-4 shadow-card">
               <div className="flex-1">
                 <p className="font-semibold text-ink">
                   {s.name}

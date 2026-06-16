@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import DashboardNav from "@/components/DashboardNav";
 import RealtimeRefresher from "@/components/RealtimeRefresher";
+import LiveStamp from "@/components/LiveStamp";
 import { createVendor, updateOrderStatus } from "@/app/actions";
 import { money, siteUrl, ORDER_STATUS_LABEL } from "@/lib/format";
 import type { Order, OrderItem, OrderStatus } from "@/lib/types";
@@ -47,6 +48,7 @@ export default async function Dashboard() {
     <main className="min-h-screen bg-cream">
       <DashboardNav active="orders" />
       <RealtimeRefresher vendorId={vendor.id} />
+      <div className="px-5 pt-2"><LiveStamp at={Date.now()} /></div>
 
       <div className="mx-auto max-w-4xl px-4 py-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -61,7 +63,7 @@ export default async function Dashboard() {
         </div>
 
         {prep.size > 0 && (
-          <div className="mt-4 rounded-xl bg-white p-4 shadow-sm">
+          <div className="mt-4 rounded-xl bg-white p-4 shadow-card">
             <p className="text-sm font-semibold text-ink/70 mb-2">Prep list (open orders)</p>
             <div className="flex flex-wrap gap-2">
               {[...prep.entries()].map(([name, qty]) => (
@@ -97,7 +99,7 @@ export default async function Dashboard() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg bg-white px-4 py-2 text-center shadow-sm">
+    <div className="rounded-lg bg-white px-4 py-2 text-center shadow-card">
       <p className="text-lg font-bold text-ink">{value}</p>
       <p className="text-xs text-ink/50">{label}</p>
     </div>
@@ -112,7 +114,7 @@ function OrderCard({ o }: { o: OrderRow }) {
     : [];
 
   return (
-    <div className="rounded-xl bg-white p-4 shadow-sm">
+    <div className="rounded-xl bg-white p-4 shadow-card">
       <div className="flex items-start justify-between">
         <div>
           <p className="font-semibold text-ink">{o.customer_name} <span className="text-ink/40 font-normal">· {o.customer_phone}</span></p>

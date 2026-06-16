@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import DashboardNav from "@/components/DashboardNav";
+import RealtimeRefresh from "@/components/RealtimeRefresh";
+import LiveStamp from "@/components/LiveStamp";
 import { setPaymentStatus } from "@/app/actions";
 import { money, ORDER_STATUS_LABEL } from "@/lib/format";
 import type { Order, OrderItem } from "@/lib/types";
@@ -57,6 +59,8 @@ export default async function ReportPage({ searchParams }: { searchParams: { ran
   return (
     <main className="min-h-screen bg-cream">
       <DashboardNav active="report" />
+      <RealtimeRefresh vendorId={vendor.id} tables={["orders"]} />
+      <div className="px-5 pt-2"><LiveStamp at={Date.now()} /></div>
       <div className="mx-auto max-w-6xl px-4 py-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="font-display text-2xl font-bold text-ink">Order report</h1>
@@ -80,7 +84,7 @@ export default async function ReportPage({ searchParams }: { searchParams: { ran
 
         <p className="mt-3 text-sm text-ink/60">{rows.length} order{rows.length === 1 ? "" : "s"} · {money(total)} total</p>
 
-        <div className="mt-3 overflow-x-auto rounded-xl bg-white shadow-sm">
+        <div className="mt-3 overflow-x-auto rounded-xl bg-white shadow-card">
           <table className="w-full min-w-[1050px] text-sm">
             <thead className="bg-panel text-ink/60">
               <tr>

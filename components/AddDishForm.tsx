@@ -67,7 +67,7 @@ export default function AddDishForm({ vendorId, services }: { vendorId: string; 
   }
 
   return (
-    <form onSubmit={submit} className="mt-4 grid grid-cols-1 gap-3 rounded-xl bg-white p-4 shadow-sm sm:grid-cols-2">
+    <form onSubmit={submit} className="mt-4 grid grid-cols-1 gap-3 rounded-xl bg-white p-4 shadow-card sm:grid-cols-2">
       <select required value={serviceId} onChange={(e) => setServiceId(e.target.value)} className="rounded-lg border border-ink/15 px-3 py-2 sm:col-span-2 bg-white">
         <option value="" disabled>Choose a service…</option>
         {services.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}

@@ -17,10 +17,10 @@ export default async function OrderConfirmation({ params }: { params: { slug: st
   if (!order || order.vendors.slug !== params.slug) notFound();
 
   return (
-    <main className="min-h-screen bg-cream px-5 py-10">
-      <div className="mx-auto max-w-lg rounded-2xl bg-white p-6 shadow-sm">
-        <p className="text-curry font-semibold">Order placed ✓</p>
-        <h1 className="font-display text-2xl font-bold text-ink mt-1">Thanks, {order.customer_name}!</h1>
+    <main className="min-h-screen bg-cream px-5 py-12">
+      <div className="mx-auto max-w-lg rounded-3xl bg-white p-7 shadow-card ring-1 ring-ink/[0.04]">
+        <div className="mb-1 inline-flex items-center gap-2 rounded-full bg-curry/10 px-3 py-1 text-sm font-semibold text-curry"><span className="grid h-4 w-4 place-items-center rounded-full bg-curry text-[10px] text-white">✓</span> Order placed</div>
+        <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Thanks, {order.customer_name}!</h1>
         <p className="text-ink/60 mt-1">{order.vendors.name} has received your order.</p>
 
         <div className="mt-5 rounded-lg bg-panel p-3 text-sm">
@@ -49,10 +49,11 @@ export default async function OrderConfirmation({ params }: { params: { slug: st
           </div>
         )}
 
-        <Link href={`/${params.slug}`} className="mt-6 inline-block rounded-lg bg-spice px-5 py-2.5 font-semibold text-ink">
+        <Link href={`/${params.slug}`} className="mt-6 inline-block rounded-xl bg-spice px-5 py-2.5 font-semibold text-ink shadow-sm transition hover:brightness-[1.04] active:scale-[.99]">
           Order again
         </Link>
       </div>
+      <p className="mx-auto mt-6 max-w-lg text-center"><Link href="/" className="text-xs text-ink/30 hover:text-ink/50">Powered by Khao</Link></p>
     </main>
   );
 }

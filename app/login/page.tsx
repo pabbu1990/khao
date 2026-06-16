@@ -18,12 +18,10 @@ export default function LoginPage() {
     setErr(null);
     setLoading(true);
     const supabase = createClient();
-
     const { error } =
       mode === "signup"
         ? await supabase.auth.signUp({ email, password })
         : await supabase.auth.signInWithPassword({ email, password });
-
     setLoading(false);
     if (error) { setErr(error.message); return; }
     router.push("/post-login");
@@ -40,60 +38,44 @@ export default function LoginPage() {
     if (error) setErr(error.message);
   }
 
-  return (
-    <main className="min-h-screen bg-ink text-cream flex items-center justify-center px-6">
-      <div className="w-full max-w-sm">
-        <p className="text-spice font-semibold tracking-[0.3em] text-xs">KHAO</p>
-        <h1 className="mt-3 font-display text-3xl font-bold">
-          {mode === "signup" ? "Create your kitchen account" : "Vendor sign in"}
-        </h1>
+  const inputCls = "w-full rounded-xl border border-white/10 bg-white/95 px-4 py-3 text-ink placeholder:text-ink/30 outline-none transition focus:ring-4 focus:ring-spice/25";
 
-        <form onSubmit={submit} className="mt-6 space-y-3">
-          <input
-            type="email"
-            required
-            placeholder="you@email.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-lg bg-white px-4 py-3 text-ink outline-none"
-          />
-          <input
-            type="password"
-            required
-            minLength={6}
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-lg bg-white px-4 py-3 text-ink outline-none"
-          />
-          <button
-            disabled={loading}
-            className="w-full rounded-lg bg-spice px-4 py-3 font-semibold text-ink disabled:opacity-60"
-          >
+  return (
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-ink px-6 text-cream">
+      <div className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-spice/20 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-24 -left-20 h-72 w-72 rounded-full bg-chili/15 blur-3xl" />
+
+      <div className="relative w-full max-w-sm">
+        <span className="font-display text-3xl font-bold tracking-tight text-spice">Khao</span>
+        <h1 className="mt-5 font-display text-3xl font-semibold leading-tight">
+          {mode === "signup" ? "Create your kitchen account" : "Welcome back"}
+        </h1>
+        <p className="mt-1.5 text-sm text-cream/55">
+          {mode === "signup" ? "Set up your kitchen in a minute." : "Sign in to your kitchen dashboard."}
+        </p>
+
+        <form onSubmit={submit} className="mt-7 space-y-3">
+          <input type="email" required placeholder="you@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className={inputCls} />
+          <input type="password" required minLength={6} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className={inputCls} />
+          <button disabled={loading} className="w-full rounded-xl bg-spice px-4 py-3 font-semibold text-ink shadow-sm transition hover:brightness-[1.04] active:scale-[.99] disabled:opacity-60">
             {loading ? "Please wait…" : mode === "signup" ? "Create account" : "Sign in"}
           </button>
         </form>
 
-        <div className="my-4 flex items-center gap-3 text-cream/40 text-sm">
-          <span className="h-px flex-1 bg-cream/15" /> or <span className="h-px flex-1 bg-cream/15" />
+        <div className="my-5 flex items-center gap-3 text-xs text-cream/35">
+          <span className="h-px flex-1 bg-white/10" /> or <span className="h-px flex-1 bg-white/10" />
         </div>
 
-        <button
-          onClick={google}
-          className="flex w-full items-center justify-center gap-2 rounded-lg border border-cream/30 px-4 py-3 font-semibold hover:bg-cream/10"
-        >
-          <span className="grid h-5 w-5 place-items-center rounded-full bg-white text-ink text-xs font-bold">G</span>
+        <button onClick={google} className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-white/15 px-4 py-3 font-semibold text-cream transition hover:bg-white/5">
+          <span className="grid h-5 w-5 place-items-center rounded-full bg-white text-xs font-bold text-ink">G</span>
           Continue with Google
         </button>
 
-        <button
-          onClick={() => { setMode(mode === "signup" ? "signin" : "signup"); setErr(null); }}
-          className="mt-4 text-sm text-cream/70 hover:text-cream"
-        >
+        <button onClick={() => { setMode(mode === "signup" ? "signin" : "signup"); setErr(null); }} className="mt-5 text-sm text-cream/60 transition hover:text-cream">
           {mode === "signup" ? "Already have an account? Sign in" : "New here? Create an account"}
         </button>
 
-        {err && <p className="mt-4 text-chili">{err}</p>}
+        {err && <p className="mt-4 text-sm text-chili">{err}</p>}
       </div>
     </main>
   );
