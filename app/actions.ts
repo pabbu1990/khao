@@ -26,8 +26,22 @@ async function getMyVendor() {
 }
 
 // ---------- vendor onboarding / settings ----------
+// Slugs that collide with real app routes (or are otherwise unsafe as a public
+// storefront address). A storefront can never take one of these exactly.
+const RESERVED_SLUGS = new Set([
+  "admin", "dashboard", "login", "logout", "reset", "auth", "post-login",
+  "api", "privacy", "terms", "settings", "menu", "services", "report",
+  "order", "orders", "vendor", "vendors", "signup", "signin", "_next",
+]);
+
 function slugify(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+// Produce a slug that's safe to route on — never an exact reserved word.
+function safeSlug(s: string, fallback = "kitchen") {
+  const base = slugify(s) || fallback;
+  return RESERVED_SLUGS.has(base) ? `${base}-kitchen` : base;
 }
 
 export async function createVendor(formData: FormData): Promise<{ ok: boolean; error?: string }> {
@@ -36,7 +50,7 @@ export async function createVendor(formData: FormData): Promise<{ ok: boolean; e
   if (!name) return { ok: false, error: "Enter a kitchen name." };
 
   const area = String(formData.get("area") || "").trim();
-  const base = slugify(name) || "kitchen";
+  const base = safeSlug(name);
   const rand = () => Math.random().toString(36).slice(2, 6);
   const admin = createAdminClient();
 
@@ -78,7 +92,7 @@ export async function updateVendorSettings(formData: FormData): Promise<{ ok: bo
   if (!acceptCash && !acceptInterac) { acceptCash = true; paymentNote = "You need at least one payment method, so we kept Cash on."; }
 
   // Link name (slug) — keep unique; ignore the change if it's taken.
-  const desiredSlug = slugify(String(formData.get("slug") || vendor.slug)) || vendor.slug;
+  const desiredSlug = safeSlug(String(formData.get("slug") || vendor.slug), vendor.slug);
   let slug = vendor.slug;
   if (desiredSlug !== vendor.slug) {
     const admin = createAdminClient();

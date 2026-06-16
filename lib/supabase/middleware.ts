@@ -26,8 +26,12 @@ export async function updateSession(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   const path = request.nextUrl.pathname;
 
-  // Protect vendor + admin areas
-  if ((path.startsWith("/dashboard") || path.startsWith("/admin")) && !user) {
+  // Protect vendor + admin areas (exact match, so vendor slugs like
+  // "admin-spot" or "dashboard-2" aren't caught by prefix matching)
+  const isProtected =
+    path === "/dashboard" || path.startsWith("/dashboard/") ||
+    path === "/admin" || path.startsWith("/admin/");
+  if (isProtected && !user) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("next", path);
