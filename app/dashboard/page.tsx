@@ -2,7 +2,6 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import DashboardNav from "@/components/DashboardNav";
-import RealtimeRefresher from "@/components/RealtimeRefresher";
 import ShareLink from "@/components/ShareLink";
 import SubmitButton from "@/components/SubmitButton";
 import LiveStamp from "@/components/LiveStamp";
@@ -61,7 +60,6 @@ export default async function Dashboard() {
   return (
     <main className="min-h-screen bg-cream">
       <DashboardNav active="orders" />
-      <RealtimeRefresher vendorId={vendor.id} />
 
       {!setupDone ? (
         <GettingStarted vendorName={vendor.name} hasServices={hasServices} hasDishes={hasDishes} />
