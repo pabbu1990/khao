@@ -6,6 +6,39 @@ import type { Dish, Vendor, Fulfilment } from "@/lib/types";
 import { money } from "@/lib/format";
 import { placeOrder } from "@/app/actions";
 import RealtimeRefresh from "@/components/RealtimeRefresh";
+import Logo from "@/components/Logo";
+
+const COUNTRY_CODES: { name: string; code: string }[] = [
+  { name: "CA/US", code: "+1" },
+  { name: "India", code: "+91" },
+  { name: "UK", code: "+44" },
+  { name: "Australia", code: "+61" },
+  { name: "UAE", code: "+971" },
+  { name: "France", code: "+33" },
+  { name: "Singapore", code: "+65" },
+];
+
+function formatPhoneFor(country: string, input: string): string {
+  const d = input.replace(/\D/g, "");
+  if (country === "+1") {
+    const t = d.slice(0, 10);
+    if (t.length <= 3) return t;
+    if (t.length <= 6) return `(${t.slice(0, 3)}) ${t.slice(3)}`;
+    return `(${t.slice(0, 3)}) ${t.slice(3, 6)}-${t.slice(6)}`;
+  }
+  return d.slice(0, 15);
+}
+
+function validatePhone(country: string, phone: string): string {
+  const d = phone.replace(/\D/g, "");
+  if (country === "+1") return d.length === 10 ? "" : "Enter a 10-digit phone number.";
+  return d.length >= 6 ? "" : "Enter a valid phone number.";
+}
+
+function validateEmail(email: string): string {
+  if (!email) return "";
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? "" : "Enter a valid email address.";
+}
 
 type Group = { service: { id: string; name: string; description: string | null }; dishes: Dish[] };
 
@@ -18,11 +51,13 @@ export default function Storefront({ vendor, groups }: { vendor: Vendor; groups:
   const [err, setErr] = useState<string | null>(null);
 
   const [form, setForm] = useState({
-    name: "", phone: "", email: "", address: "",
+    name: "", phone: "", email: "", address: "", country: "+1",
     fulfilment: "pickup" as Fulfilment,
     requestedTime: "", note: "",
     payChoice: (vendor.accept_cash ? "cash" : "interac") as "cash" | "interac",
   });
+  const [errors, setErrors] = useState({ phone: "", email: "" });
+  const [touched, setTouched] = useState({ phone: false, email: false });
 
   const lines = useMemo(
     () => allDishes.filter((d) => cart[d.id] > 0).map((d) => ({ dish: d, qty: cart[d.id] })),
@@ -43,11 +78,18 @@ export default function Storefront({ vendor, groups }: { vendor: Vendor; groups:
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setErr(null);
+    const phoneErr = validatePhone(form.country, form.phone);
+    const emailErr = validateEmail(form.email);
+    if (phoneErr || emailErr) {
+      setTouched({ phone: true, email: true });
+      setErrors({ phone: phoneErr, email: emailErr });
+      return;
+    }
     setSubmitting(true);
     const res = await placeOrder({
       vendorId: vendor.id,
       slug: vendor.slug,
-      customer: { name: form.name, phone: form.phone, email: form.email, address: form.address },
+      customer: { name: form.name, phone: `${form.country} ${form.phone}`, email: form.email, address: form.address },
       fulfilment: form.fulfilment,
       requestedTime: form.requestedTime,
       note: form.note,
@@ -115,10 +157,14 @@ export default function Storefront({ vendor, groups }: { vendor: Vendor; groups:
                 <div className="mt-3 space-y-3">
                   {g.dishes.map((d) => (
                     <div key={d.id} className="flex items-center gap-4 rounded-2xl bg-white p-3.5 shadow-card ring-1 ring-ink/[0.04] transition duration-200 hover:shadow-pop">
-                      {d.photo_url && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={d.photo_url} alt="" className="h-20 w-20 shrink-0 rounded-xl object-cover ring-1 ring-ink/5" />
-                      )}
+                      <div className="h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-panel ring-1 ring-ink/5">
+                        {(d.photo_url || vendor.logo_url) ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={d.photo_url || vendor.logo_url || ""} alt="" className="h-full w-full object-cover" />
+                        ) : (
+                          <span className="flex h-full w-full items-center justify-center"><Logo size={40} /></span>
+                        )}
+                      </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <svg viewBox="0 0 16 16" width="15" height="15" className="shrink-0" aria-label={d.veg ? "Vegetarian" : "Non-vegetarian"}>
@@ -157,8 +203,31 @@ export default function Storefront({ vendor, groups }: { vendor: Vendor; groups:
           <form onSubmit={submit} className="mt-7 space-y-5 rounded-2xl bg-white p-6 shadow-card ring-1 ring-ink/[0.04]">
             <h2 className="font-display text-2xl font-semibold text-ink">Your details</h2>
             <Field label="Name" required value={form.name} onChange={(v) => setForm({ ...form, name: v })} />
-            <Field label="Phone" required value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} />
-            <Field label="Email" type="email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} />
+            <div>
+              <span className="text-sm font-medium text-ink/70">Phone</span>
+              <div className={`mt-1.5 flex items-center rounded-xl border bg-white transition focus-within:ring-4 ${touched.phone && errors.phone ? "border-chili focus-within:ring-chili/15" : "border-line focus-within:border-spice focus-within:ring-spice/15"}`}>
+                <input list="country-codes" value={form.country} aria-label="Country code" placeholder="+1"
+                  onChange={(e) => setForm({ ...form, country: e.target.value, phone: formatPhoneFor(e.target.value, form.phone) })}
+                  className="w-[4.5rem] rounded-l-xl bg-transparent py-3 pl-3.5 pr-1 text-sm font-medium text-ink/80 outline-none placeholder:text-ink/30" />
+                <datalist id="country-codes">
+                  {COUNTRY_CODES.map((c) => <option key={c.name} value={c.code}>{c.name}</option>)}
+                </datalist>
+                <span className="h-6 w-px shrink-0 bg-line" />
+                <input type="tel" inputMode="numeric" placeholder="(613) 555-1234" value={form.phone}
+                  onChange={(e) => { const v = formatPhoneFor(form.country, e.target.value); setForm({ ...form, phone: v }); if (touched.phone) setErrors((x) => ({ ...x, phone: validatePhone(form.country, v) })); }}
+                  onBlur={() => { setTouched((t) => ({ ...t, phone: true })); setErrors((x) => ({ ...x, phone: validatePhone(form.country, form.phone) })); }}
+                  className="flex-1 rounded-r-xl bg-transparent px-3.5 py-3 text-ink placeholder:text-ink/30 outline-none" />
+              </div>
+              {touched.phone && errors.phone && <p className="mt-1 text-sm text-chili">{errors.phone}</p>}
+            </div>
+            <div>
+              <span className="text-sm font-medium text-ink/70">Email <span className="text-ink/35">(optional)</span></span>
+              <input type="email" placeholder="you@email.com" value={form.email}
+                onChange={(e) => { const v = e.target.value; setForm({ ...form, email: v }); if (touched.email) setErrors((x) => ({ ...x, email: validateEmail(v) })); }}
+                onBlur={() => { setTouched((t) => ({ ...t, email: true })); setErrors((x) => ({ ...x, email: validateEmail(form.email) })); }}
+                className={`mt-1.5 w-full rounded-xl border bg-white px-4 py-3 text-ink placeholder:text-ink/30 outline-none transition focus:ring-4 ${touched.email && errors.email ? "border-chili focus:border-chili focus:ring-chili/15" : "border-line focus:border-spice focus:ring-spice/15"}`} />
+              {touched.email && errors.email && <p className="mt-1 text-sm text-chili">{errors.email}</p>}
+            </div>
 
             <div>
               <span className="text-sm font-medium text-ink/70">Pickup or delivery</span>
@@ -175,7 +244,12 @@ export default function Storefront({ vendor, groups }: { vendor: Vendor; groups:
             {form.fulfilment === "delivery" && (
               <Field label="Delivery address" required value={form.address} onChange={(v) => setForm({ ...form, address: v })} />
             )}
-            <Field label="Preferred time (optional)" value={form.requestedTime} onChange={(v) => setForm({ ...form, requestedTime: v })} />
+            <label className="block">
+              <span className="text-sm font-medium text-ink/70">Preferred time (optional)</span>
+              <input type="text" inputMode="numeric" placeholder="e.g. 13:00" value={form.requestedTime}
+                onChange={(e) => setForm({ ...form, requestedTime: e.target.value })}
+                className="mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-3 text-ink placeholder:text-ink/30 outline-none transition focus:border-spice focus:ring-4 focus:ring-spice/15" />
+            </label>
             <Field label="Notes (optional)" value={form.note} onChange={(v) => setForm({ ...form, note: v })} />
 
             <div>

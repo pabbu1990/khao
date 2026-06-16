@@ -29,22 +29,28 @@ function slugify(s: string) {
 }
 
 export async function createVendor(formData: FormData) {
-  const { supabase, user } = await requireUser();
+  const { user } = await requireUser();
   const name = String(formData.get("name") || "").trim();
   if (!name) return;
 
-  // Auto-generate the storefront link from the kitchen name; ensure it's unique.
+  const area = String(formData.get("area") || "");
   const base = slugify(name) || "kitchen";
+  const rand = () => Math.random().toString(36).slice(2, 6);
   const admin = createAdminClient();
-  const { data: taken } = await admin.from("vendors").select("id").eq("slug", base).maybeSingle();
-  const slug = taken ? `${base}-${Math.random().toString(36).slice(2, 6)}` : base;
 
-  await supabase.from("vendors").insert({
-    owner_id: user.id,
-    name,
-    slug,
-    area: String(formData.get("area") || ""),
-  });
+  // Ensure a profile row exists (vendors.owner_id references it). Don't overwrite an existing role.
+  await admin.from("profiles").upsert({ id: user.id, role: "vendor" }, { onConflict: "id", ignoreDuplicates: true });
+
+  const { data: taken } = await admin.from("vendors").select("id").eq("slug", base).maybeSingle();
+  let slug = taken ? `${base}-${rand()}` : base;
+
+  let { error } = await admin.from("vendors").insert({ owner_id: user.id, name, slug, area });
+  if (error) {
+    slug = `${base}-${rand()}`;
+    ({ error } = await admin.from("vendors").insert({ owner_id: user.id, name, slug, area }));
+  }
+  if (error) return;
+
   revalidatePath("/dashboard");
   redirect("/dashboard");
 }

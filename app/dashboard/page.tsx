@@ -20,30 +20,22 @@ export default async function Dashboard() {
   if (!user) redirect("/login");
 
   const { data: vendor } = await supabase.from("vendors").select("*").eq("owner_id", user.id).maybeSingle();
-
-  if (!vendor) {
-    return <Onboarding />;
-  }
+  if (!vendor) return <Onboarding />;
 
   const { data: orders } = await supabase
-    .from("orders")
-    .select("*, order_items(*)")
-    .eq("vendor_id", vendor.id)
-    .order("created_at", { ascending: false })
-    .limit(100);
+    .from("orders").select("*, order_items(*)").eq("vendor_id", vendor.id)
+    .order("created_at", { ascending: false }).limit(100);
 
   const rows = (orders ?? []) as OrderRow[];
   const open = rows.filter((o) => ["placed", "accepted", "ready"].includes(o.status));
   const done = rows.filter((o) => ["completed", "declined", "cancelled"].includes(o.status));
 
-  // Prep list across open orders
   const prep = new Map<string, number>();
   for (const o of open) for (const it of o.order_items) {
     const key = it.service_snapshot ? `${it.service_snapshot} · ${it.name_snapshot}` : it.name_snapshot;
     prep.set(key, (prep.get(key) || 0) + it.qty);
   }
   const dayTotal = open.reduce((s, o) => s + Number(o.subtotal_cad), 0);
-
   const link = `${siteUrl()}/${vendor.slug}`;
 
   const { count: servicesCount } = await supabase.from("services").select("*", { count: "exact", head: true }).eq("vendor_id", vendor.id);
@@ -54,40 +46,53 @@ export default async function Dashboard() {
     <main className="min-h-screen bg-cream">
       <DashboardNav active="orders" />
       <RealtimeRefresher vendorId={vendor.id} />
-      <div className="px-5 pt-2"><LiveStamp at={Date.now()} /></div>
 
-      <div className="mx-auto max-w-4xl px-4 py-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="mx-auto max-w-4xl px-4 py-6">
+        <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="font-display text-2xl font-bold text-ink">{vendor.name}</h1>
-            <div className="mt-2 max-w-xl"><ShareLink link={link} /></div>
+            <h1 className="font-display text-3xl font-bold text-ink">{vendor.name}</h1>
+            <div className="mt-1"><LiveStamp at={Date.now()} /></div>
           </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <form action={toggleAcceptingOrders.bind(null, !vendor.accepting_orders)}>
-              <button className={`rounded-lg px-3.5 py-2 text-sm font-semibold transition ${vendor.accepting_orders ? "bg-curry/15 text-curry hover:bg-curry/20" : "bg-chili/15 text-chili hover:bg-chili/20"}`}>
-                {vendor.accepting_orders ? "● Live — pause orders" : "Paused — resume orders"}
-              </button>
-            </form>
-            <Stat label="Open orders" value={String(open.length)} />
-            <Stat label="Open total" value={money(dayTotal)} />
-          </div>
+          <form action={toggleAcceptingOrders.bind(null, !vendor.accepting_orders)}>
+            <button className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition ${vendor.accepting_orders ? "bg-curry/15 text-curry hover:bg-curry/20" : "bg-chili/15 text-chili hover:bg-chili/20"}`}>
+              <span className={`h-2 w-2 rounded-full ${vendor.accepting_orders ? "bg-curry" : "bg-chili"}`} />
+              {vendor.accepting_orders ? "Accepting orders — tap to pause" : "Paused — tap to resume"}
+            </button>
+          </form>
         </div>
 
         {!setupDone && (
-          <div className="mt-4 rounded-2xl border border-spice/30 bg-white p-5 shadow-card">
+          <div className="mt-5 rounded-2xl border border-spice/30 bg-white p-5 shadow-card">
             <h2 className="font-display text-lg font-bold text-ink">Finish setting up your kitchen</h2>
             <p className="mt-0.5 text-sm text-ink/50">A few quick steps to start taking orders.</p>
             <ol className="mt-3 space-y-2.5">
               <Step done={(servicesCount ?? 0) > 0} href="/dashboard/services" n={1} label="Create a service (e.g. Weekday Lunch)" />
               <Step done={(dishesCount ?? 0) > 0} href="/dashboard/menu" n={2} label="Add dishes to your menu" />
-              <Step done={false} n={3} label="Share your link in WhatsApp (buttons above)" />
+              <Step done={false} n={3} label="Share your link with customers (below)" />
             </ol>
           </div>
         )}
 
+        <div className="mt-5 rounded-2xl border border-spice/30 bg-white p-5 shadow-card">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="font-display text-lg font-bold text-ink">Your ordering link</h2>
+            <span className="rounded-full bg-spice/15 px-2.5 py-0.5 text-xs font-semibold text-spice">Share with customers</span>
+          </div>
+          <p className="mt-1 max-w-2xl text-sm text-ink/55">
+            This is your kitchen&rsquo;s page. Send it to your customers — drop it in your WhatsApp groups, status, or chats.
+            They tap it to browse your menu and order, and every order lands right here on this dashboard.
+          </p>
+          <div className="mt-3"><ShareLink link={link} /></div>
+        </div>
+
+        <div className="mt-5 grid max-w-sm grid-cols-2 gap-3">
+          <Stat label="Open orders" value={String(open.length)} />
+          <Stat label="Open total" value={money(dayTotal)} />
+        </div>
+
         {prep.size > 0 && (
-          <div className="mt-4 rounded-xl bg-white p-4 shadow-card">
-            <p className="text-sm font-semibold text-ink/70 mb-2">Prep list (open orders)</p>
+          <div className="mt-4 rounded-2xl bg-white p-4 shadow-card">
+            <p className="mb-2 text-sm font-semibold text-ink/70">Prep list <span className="font-normal text-ink/40">· open orders</span></p>
             <div className="flex flex-wrap gap-2">
               {[...prep.entries()].map(([name, qty]) => (
                 <span key={name} className="rounded-full bg-panel px-3 py-1 text-sm font-medium text-ink">{name} × {qty}</span>
@@ -96,24 +101,30 @@ export default async function Dashboard() {
           </div>
         )}
 
-        <h2 className="mt-6 mb-2 font-semibold text-ink">Live orders</h2>
-        {open.length === 0 && <p className="text-ink/50 py-8 text-center rounded-xl bg-white">No open orders. New orders appear here instantly.</p>}
-        <div className="space-y-3">
-          {open.map((o) => <OrderCard key={o.id} o={o} />)}
-        </div>
+        <section className="mt-6">
+          <h2 className="mb-3 font-display text-xl font-bold text-ink">Live orders</h2>
+          {open.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-line bg-white/60 py-12 text-center">
+              <p className="font-medium text-ink/70">No open orders yet</p>
+              <p className="mt-1 text-sm text-ink/45">New orders appear here the moment a customer places one.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">{open.map((o) => <OrderCard key={o.id} o={o} />)}</div>
+          )}
+        </section>
 
         {done.length > 0 && (
-          <>
-            <h2 className="mt-8 mb-2 font-semibold text-ink/60">Recent (closed)</h2>
-            <div className="space-y-2">
+          <section className="mt-8">
+            <h2 className="mb-2 font-display text-lg font-bold text-ink/60">Recent</h2>
+            <div className="divide-y divide-line overflow-hidden rounded-2xl bg-white shadow-card">
               {done.slice(0, 15).map((o) => (
-                <div key={o.id} className="flex justify-between rounded-lg bg-white/60 px-4 py-2 text-sm text-ink/60">
-                  <span>{o.customer_name} · {o.order_items.reduce((s, it) => s + it.qty, 0)} items</span>
-                  <span>{ORDER_STATUS_LABEL[o.status]} · {money(Number(o.subtotal_cad))}</span>
+                <div key={o.id} className="flex items-center justify-between px-4 py-3 text-sm">
+                  <span className="text-ink/70">{o.customer_name} <span className="text-ink/35">· {o.order_items.reduce((s, it) => s + it.qty, 0)} items</span></span>
+                  <span className="text-ink/50">{ORDER_STATUS_LABEL[o.status]} · {money(Number(o.subtotal_cad))}</span>
                 </div>
               ))}
             </div>
-          </>
+          </section>
         )}
       </div>
     </main>
@@ -132,8 +143,8 @@ function Step({ done, href, n, label }: { done: boolean; href?: string; n: numbe
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg bg-white px-4 py-2 text-center shadow-card">
-      <p className="text-lg font-bold text-ink">{value}</p>
+    <div className="rounded-2xl bg-white p-4 shadow-card">
+      <p className="text-2xl font-bold text-ink">{value}</p>
       <p className="text-xs text-ink/50">{label}</p>
     </div>
   );
@@ -145,36 +156,34 @@ function OrderCard({ o }: { o: OrderRow }) {
     : o.status === "accepted" ? [{ label: "Mark ready", status: "ready", primary: true }]
     : o.status === "ready" ? [{ label: "Complete", status: "completed", primary: true }]
     : [];
+  const badge = o.status === "placed" ? "bg-spice/15 text-spice" : o.status === "ready" ? "bg-curry/15 text-curry" : "bg-ink/10 text-ink/60";
 
   return (
-    <div className="rounded-xl bg-white p-4 shadow-card">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="font-semibold text-ink">{o.customer_name} <span className="text-ink/40 font-normal">· {o.customer_phone}</span></p>
-          <p className="text-sm text-ink/50 capitalize">
+    <div className="rounded-2xl bg-white p-4 shadow-card ring-1 ring-ink/[0.03]">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-semibold text-ink">{o.customer_name} <span className="font-normal text-ink/40">· {o.customer_phone}</span></p>
+          <p className="mt-0.5 text-sm capitalize text-ink/50">
             {o.fulfilment}{o.requested_time ? ` · ${o.requested_time}` : ""} · {o.payment_label ?? (o.payment_method === "online" ? "Paid online" : "Pay direct")}
           </p>
           {o.customer_address && <p className="text-sm text-ink/50">{o.customer_address}</p>}
         </div>
-        <span className="rounded-full bg-spice/15 px-3 py-1 text-xs font-semibold text-ink">{ORDER_STATUS_LABEL[o.status]}</span>
+        <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${badge}`}>{ORDER_STATUS_LABEL[o.status]}</span>
       </div>
 
-      <ul className="mt-2 text-sm text-ink/80">
+      <ul className="mt-3 space-y-0.5 text-sm text-ink/80">
         {o.order_items.map((it) => (
-          <li key={it.id}>
-            {it.qty} × {it.name_snapshot}
-            {it.service_snapshot && <span className="text-ink/40"> · {it.service_snapshot}</span>}
-          </li>
+          <li key={it.id}>{it.qty} × {it.name_snapshot}{it.service_snapshot && <span className="text-ink/40"> · {it.service_snapshot}</span>}</li>
         ))}
       </ul>
-      {o.customer_note && <p className="mt-1 text-sm italic text-ink/60">“{o.customer_note}”</p>}
+      {o.customer_note && <p className="mt-2 rounded-lg bg-panel px-3 py-2 text-sm italic text-ink/60">&ldquo;{o.customer_note}&rdquo;</p>}
 
-      <div className="mt-3 flex items-center justify-between">
-        <span className="font-semibold text-ink">{money(Number(o.subtotal_cad))}</span>
+      <div className="mt-4 flex items-center justify-between border-t border-line pt-3">
+        <span className="text-lg font-bold text-ink">{money(Number(o.subtotal_cad))}</span>
         <div className="flex gap-2">
           {next.map((n) => (
             <form key={n.status} action={updateOrderStatus.bind(null, o.id, n.status)}>
-              <SubmitButton className={`rounded-lg px-4 py-2 text-sm font-semibold ${n.primary ? "bg-spice text-ink" : "border border-ink/15 text-ink/60"}`}>{n.label}</SubmitButton>
+              <SubmitButton className={`rounded-xl px-5 py-2.5 text-sm font-semibold transition ${n.primary ? "bg-spice text-ink hover:brightness-[1.04]" : "border border-line text-ink/60 hover:border-ink/25"}`}>{n.label}</SubmitButton>
             </form>
           ))}
         </div>
@@ -185,14 +194,15 @@ function OrderCard({ o }: { o: OrderRow }) {
 
 function Onboarding() {
   return (
-    <main className="min-h-screen bg-ink text-cream flex items-center justify-center px-6">
-      <form action={createVendor} className="w-full max-w-md space-y-3">
-        <p className="text-spice font-semibold tracking-[0.3em] text-xs">KHAO</p>
+    <main className="relative flex min-h-screen items-center justify-center overflow-clip bg-ink px-6 text-cream">
+      <div className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-spice/20 blur-3xl" />
+      <form action={createVendor} className="relative w-full max-w-md space-y-3">
+        <span className="font-display text-2xl font-bold tracking-tight text-spice">Khao</span>
         <h1 className="font-display text-3xl font-bold">Set up your kitchen</h1>
-        <p className="text-cream/70 text-sm">This creates your public ordering page. Your link is made from your kitchen name — you can change it, your hours and payment details later in Settings.</p>
-        <input name="name" required placeholder="Kitchen name (e.g. Spice Divine)" className="w-full rounded-lg bg-white px-4 py-3 text-ink" />
-        <input name="area" placeholder="Area (e.g. Barrhaven)" className="w-full rounded-lg bg-white px-4 py-3 text-ink" />
-        <button className="w-full rounded-lg bg-spice px-4 py-3 font-semibold text-ink">Create my kitchen</button>
+        <p className="text-sm leading-relaxed text-cream/70">This creates your public ordering page. Your link is made from your kitchen name — you can change it, your hours and payment details later in Settings.</p>
+        <input name="name" required placeholder="Kitchen name (e.g. Spice Divine)" className="w-full rounded-xl border border-white/10 bg-white/95 px-4 py-3 text-ink placeholder:text-ink/30 outline-none transition focus:ring-4 focus:ring-spice/25" />
+        <input name="area" placeholder="Area (e.g. Barrhaven)" className="w-full rounded-xl border border-white/10 bg-white/95 px-4 py-3 text-ink placeholder:text-ink/30 outline-none transition focus:ring-4 focus:ring-spice/25" />
+        <button className="w-full rounded-xl bg-spice px-4 py-3 font-semibold text-ink shadow-sm transition hover:brightness-[1.04] active:scale-[.99]">Create my kitchen</button>
       </form>
     </main>
   );

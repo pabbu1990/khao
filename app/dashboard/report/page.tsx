@@ -130,7 +130,7 @@ export default async function ReportPage({ searchParams }: { searchParams: { ran
                         {o.payment_status === "paid" ? "Paid" : "Unpaid"}
                       </span>
                       <form action={setPaymentStatus.bind(null, o.id, o.payment_status === "paid" ? "unpaid" : "paid")}>
-                        <button className="text-xs font-semibold text-ink/50 underline">
+                        <button className="rounded-md border border-line px-2.5 py-1 text-xs font-semibold text-ink/70 transition hover:bg-panel">
                           {o.payment_status === "paid" ? "Mark unpaid" : "Mark paid"}
                         </button>
                       </form>

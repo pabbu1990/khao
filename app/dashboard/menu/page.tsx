@@ -146,7 +146,7 @@ function DishRow({ d, services, today, open }: { d: Dish; services: { id: string
         </button>
       </form>
       <form action={deleteDish.bind(null, d.id)}>
-        <button className="rounded-lg px-2 py-1.5 text-sm text-chili">Delete</button>
+        <button className="rounded-lg border border-chili/25 px-3 py-1.5 text-sm font-semibold text-chili transition hover:bg-chili/10">Delete</button>
       </form>
     </div>
   );

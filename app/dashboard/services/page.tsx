@@ -60,12 +60,12 @@ export default async function ServicesPage() {
                 <p className="text-xs text-ink/40 mt-0.5">{s.available_days.length ? s.available_days.join(", ") : "Every day"}</p>
               </div>
               <form action={toggleServiceActive.bind(null, s.id, !s.is_active)}>
-                <button className="rounded-lg border border-ink/15 px-3 py-1.5 text-sm text-ink/70">
+                <button className="rounded-lg border border-ink/20 bg-panel px-3 py-1.5 text-sm font-semibold text-ink/70 transition hover:bg-ink/5">
                   {s.is_active ? "Turn off" : "Turn on"}
                 </button>
               </form>
               <form action={deleteService.bind(null, s.id)}>
-                <button className="rounded-lg px-2 py-1.5 text-sm text-chili">Delete</button>
+                <button className="rounded-lg border border-chili/25 px-3 py-1.5 text-sm font-semibold text-chili transition hover:bg-chili/10">Delete</button>
               </form>
             </div>
           ))}
