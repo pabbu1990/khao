@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import DashboardNav from "@/components/DashboardNav";
-import ShareLink from "@/components/ShareLink";
+import ShareLinkPanel from "@/components/ShareLinkPanel";
 import SubmitButton from "@/components/SubmitButton";
 import LiveStamp from "@/components/LiveStamp";
 import RecentOrderRow from "@/components/RecentOrderRow";
@@ -71,24 +71,28 @@ export default async function Dashboard() {
             <div className="mt-1"><LiveStamp at={Date.now()} /></div>
           </div>
           <form action={toggleAcceptingOrders.bind(null, !vendor.accepting_orders)}>
-            <button className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition ${vendor.accepting_orders ? "bg-curry/15 text-curry hover:bg-curry/20" : "bg-chili/15 text-chili hover:bg-chili/20"}`}>
-              <span className={`h-2 w-2 rounded-full ${vendor.accepting_orders ? "bg-curry" : "bg-chili"}`} />
-              {vendor.accepting_orders ? "Accepting orders — tap to pause" : "Paused — tap to resume"}
+            <button
+              type="submit"
+              role="switch"
+              aria-checked={vendor.accepting_orders}
+              className="group flex items-center gap-3 rounded-2xl border border-line bg-white px-4 py-2.5 shadow-card transition hover:border-ink/25"
+            >
+              <span className="text-left">
+                <span className={`block text-sm font-bold ${vendor.accepting_orders ? "text-curry" : "text-chili"}`}>
+                  {vendor.accepting_orders ? "Accepting orders" : "Orders paused"}
+                </span>
+                <span className="block text-xs text-ink/45">
+                  {vendor.accepting_orders ? "Tap to pause" : "Tap to resume"}
+                </span>
+              </span>
+              <span className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${vendor.accepting_orders ? "bg-curry" : "bg-ink/25"}`}>
+                <span className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-all ${vendor.accepting_orders ? "left-[1.375rem]" : "left-0.5"}`} />
+              </span>
             </button>
           </form>
         </div>
 
-        <div className="mt-5 rounded-2xl border border-spice/30 bg-white p-5 shadow-card">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="font-display text-lg font-bold text-ink">Your ordering link</h2>
-            <span className="rounded-full bg-spice/15 px-2.5 py-0.5 text-xs font-semibold text-spice">Share with customers</span>
-          </div>
-          <p className="mt-1 max-w-2xl text-sm text-ink/55">
-            This is your kitchen&rsquo;s page. Send it to your customers — drop it in your WhatsApp groups, status, or chats.
-            They tap it to browse your menu and order, and every order lands right here on this dashboard.
-          </p>
-          <div className="mt-3"><ShareLink link={link} /></div>
-        </div>
+        <ShareLinkPanel link={link} />
 
         <div className="mt-5 grid grid-cols-3 gap-4">
           <Stat label="Open orders" value={String(open.length)} />
