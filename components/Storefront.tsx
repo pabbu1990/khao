@@ -244,12 +244,6 @@ export default function Storefront({ vendor, groups }: { vendor: Vendor; groups:
             {form.fulfilment === "delivery" && (
               <Field label="Delivery address" required value={form.address} onChange={(v) => setForm({ ...form, address: v })} />
             )}
-            <label className="block">
-              <span className="text-sm font-medium text-ink/70">Preferred time (optional)</span>
-              <input type="text" inputMode="numeric" placeholder="e.g. 13:00" value={form.requestedTime}
-                onChange={(e) => setForm({ ...form, requestedTime: e.target.value })}
-                className="mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-3 text-ink placeholder:text-ink/30 outline-none transition focus:border-spice focus:ring-4 focus:ring-spice/15" />
-            </label>
             <Field label="Notes (optional)" value={form.note} onChange={(v) => setForm({ ...form, note: v })} />
 
             <div>
