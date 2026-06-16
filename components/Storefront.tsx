@@ -95,9 +95,10 @@ export default function Storefront({ vendor, groups }: { vendor: Vendor; groups:
                 )}
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <span className={`inline-block h-3 w-3 rounded-sm border ${d.veg ? "border-curry" : "border-chili"}`}>
-                      <span className={`block h-1.5 w-1.5 m-[3px] rounded-full ${d.veg ? "bg-curry" : "bg-chili"}`} />
-                    </span>
+                    <svg viewBox="0 0 16 16" width="16" height="16" className="shrink-0" aria-label={d.veg ? "Vegetarian" : "Non-vegetarian"}>
+                      <rect x="1.5" y="1.5" width="13" height="13" rx="2.5" fill="none" stroke={d.veg ? "#3E7A4E" : "#C0392B"} strokeWidth="1.8" />
+                      <circle cx="8" cy="8" r="3" fill={d.veg ? "#3E7A4E" : "#C0392B"} />
+                    </svg>
                     <h3 className="font-semibold text-ink">{d.name}</h3>
                   </div>
                   {d.description && <p className="text-sm text-ink/60 mt-0.5">{d.description}</p>}

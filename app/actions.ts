@@ -159,6 +159,13 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus) {
   revalidatePath("/dashboard");
 }
 
+export async function setPaymentStatus(orderId: string, status: "paid" | "unpaid") {
+  const { supabase, vendor } = await getMyVendor();
+  if (!vendor) return;
+  await supabase.from("orders").update({ payment_status: status }).eq("id", orderId).eq("vendor_id", vendor.id);
+  revalidatePath("/dashboard/report");
+}
+
 export interface PlaceOrderInput {
   vendorId: string;
   slug: string;

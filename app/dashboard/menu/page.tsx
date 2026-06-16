@@ -10,6 +10,9 @@ import type { Dish, Service } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
+const torontoDate = (iso: string | Date) =>
+  new Intl.DateTimeFormat("en-CA", { timeZone: "America/Toronto" }).format(new Date(iso));
+
 export default async function MenuPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -25,7 +28,28 @@ export default async function MenuPage() {
   const { data: dishesData } = await supabase.from("dishes").select("*").eq("vendor_id", vendor.id).order("created_at");
   const dishes = (dishesData ?? []) as Dish[];
 
-  // group dishes by service
+  // Per-dish order counts: "today" (Toronto) and "open orders".
+  const since = new Date(Date.now() - 7 * 864e5).toISOString();
+  const { data: ordersData } = await supabase
+    .from("orders")
+    .select("status,created_at,order_items(dish_id,qty)")
+    .eq("vendor_id", vendor.id)
+    .gte("created_at", since);
+
+  const todayTO = torontoDate(new Date());
+  const todayCount = new Map<string, number>();
+  const openCount = new Map<string, number>();
+  for (const o of (ordersData ?? []) as { status: string; created_at: string; order_items: { dish_id: string | null; qty: number }[] }[]) {
+    if (o.status === "declined" || o.status === "cancelled") continue;
+    const isToday = torontoDate(o.created_at) === todayTO;
+    const isOpen = o.status === "placed" || o.status === "accepted" || o.status === "ready";
+    for (const it of o.order_items) {
+      if (!it.dish_id) continue;
+      if (isToday) todayCount.set(it.dish_id, (todayCount.get(it.dish_id) || 0) + it.qty);
+      if (isOpen) openCount.set(it.dish_id, (openCount.get(it.dish_id) || 0) + it.qty);
+    }
+  }
+
   const byService = new Map<string, Dish[]>();
   const unassigned: Dish[] = [];
   for (const d of dishes) {
@@ -38,11 +62,18 @@ export default async function MenuPage() {
     }
   }
 
+  const row = (d: Dish) => (
+    <DishRow key={d.id} d={d} services={serviceOpts} today={todayCount.get(d.id) || 0} open={openCount.get(d.id) || 0} />
+  );
+
   return (
     <main className="min-h-screen bg-cream">
       <DashboardNav active="menu" />
       <div className="mx-auto max-w-3xl px-4 py-5">
-        <h1 className="font-display text-2xl font-bold text-ink">Menu</h1>
+        <div className="flex items-baseline justify-between">
+          <h1 className="font-display text-2xl font-bold text-ink">Menu</h1>
+          <p className="text-xs text-ink/40">Counts reset daily (Ottawa time)</p>
+        </div>
 
         {services.length === 0 ? (
           <div className="mt-4 rounded-xl bg-white p-6 text-center shadow-sm">
@@ -66,9 +97,7 @@ export default async function MenuPage() {
               {list.length === 0 ? (
                 <p className="text-sm text-ink/40 mt-1">No dishes in this service yet.</p>
               ) : (
-                <div className="mt-2 space-y-2">
-                  {list.map((d) => <DishRow key={d.id} d={d} services={serviceOpts} />)}
-                </div>
+                <div className="mt-2 space-y-2">{list.map(row)}</div>
               )}
             </section>
           );
@@ -78,9 +107,7 @@ export default async function MenuPage() {
           <section className="mt-6">
             <h2 className="font-display text-lg font-bold text-ink/60">Unassigned</h2>
             <p className="text-sm text-ink/40">Pick a service for these so they appear on your page.</p>
-            <div className="mt-2 space-y-2">
-              {unassigned.map((d) => <DishRow key={d.id} d={d} services={serviceOpts} />)}
-            </div>
+            <div className="mt-2 space-y-2">{unassigned.map(row)}</div>
           </section>
         )}
       </div>
@@ -88,7 +115,7 @@ export default async function MenuPage() {
   );
 }
 
-function DishRow({ d, services }: { d: Dish; services: { id: string; name: string }[] }) {
+function DishRow({ d, services, today, open }: { d: Dish; services: { id: string; name: string }[]; today: number; open: number }) {
   return (
     <div className="flex flex-wrap items-center gap-3 rounded-xl bg-white p-3 shadow-sm">
       {d.photo_url && (
@@ -98,6 +125,14 @@ function DishRow({ d, services }: { d: Dish; services: { id: string; name: strin
       <div className="flex-1 min-w-[8rem]">
         <p className="font-semibold text-ink">{d.name} <span className="text-ink/40 font-normal">· {money(Number(d.price_cad))}</span></p>
         {d.description && <p className="text-sm text-ink/50">{d.description}</p>}
+        <div className="mt-1 flex flex-wrap gap-1.5">
+          <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${today > 0 ? "bg-spice/15 text-ink" : "bg-ink/5 text-ink/40"}`}>
+            {today} ordered today
+          </span>
+          {open > 0 && (
+            <span className="rounded-full bg-curry/15 px-2 py-0.5 text-xs font-semibold text-curry">{open} in open orders</span>
+          )}
+        </div>
       </div>
       {services.length > 0 && <DishServiceSelect dishId={d.id} current={d.service_id} services={services} />}
       {d.is_sold_out && <span className="text-xs font-semibold text-chili">Sold out</span>}

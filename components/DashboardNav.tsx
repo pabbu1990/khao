@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { signOut } from "@/app/actions";
 
-export default function DashboardNav({ active }: { active: "orders" | "services" | "menu" | "settings" }) {
+export default function DashboardNav({ active }: { active: "orders" | "items" | "report" | "menu" | "services" | "settings" }) {
   const tab = (key: string, href: string, label: string) => (
     <Link
       href={href}
@@ -11,12 +11,13 @@ export default function DashboardNav({ active }: { active: "orders" | "services"
     </Link>
   );
   return (
-    <header className="bg-ink text-cream px-5 py-3 flex items-center justify-between">
-      <div className="flex items-center gap-2">
+    <header className="bg-ink text-cream px-5 py-3 flex flex-wrap items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <span className="font-display font-bold text-spice mr-2">KHAO</span>
         {tab("orders", "/dashboard", "Orders")}
-        {tab("services", "/dashboard/services", "Services")}
+        {tab("report", "/dashboard/report", "Report")}
         {tab("menu", "/dashboard/menu", "Menu")}
+        {tab("services", "/dashboard/services", "Services")}
         {tab("settings", "/dashboard/settings", "Settings")}
       </div>
       <form action={signOut}>
