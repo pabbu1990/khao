@@ -3,8 +3,10 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import DashboardNav from "@/components/DashboardNav";
 import RealtimeRefresher from "@/components/RealtimeRefresher";
+import ShareLink from "@/components/ShareLink";
+import SubmitButton from "@/components/SubmitButton";
 import LiveStamp from "@/components/LiveStamp";
-import { createVendor, updateOrderStatus } from "@/app/actions";
+import { createVendor, updateOrderStatus, toggleAcceptingOrders } from "@/app/actions";
 import { money, siteUrl, ORDER_STATUS_LABEL } from "@/lib/format";
 import type { Order, OrderItem, OrderStatus } from "@/lib/types";
 
@@ -44,6 +46,10 @@ export default async function Dashboard() {
 
   const link = `${siteUrl()}/${vendor.slug}`;
 
+  const { count: servicesCount } = await supabase.from("services").select("*", { count: "exact", head: true }).eq("vendor_id", vendor.id);
+  const { count: dishesCount } = await supabase.from("dishes").select("*", { count: "exact", head: true }).eq("vendor_id", vendor.id);
+  const setupDone = (servicesCount ?? 0) > 0 && (dishesCount ?? 0) > 0;
+
   return (
     <main className="min-h-screen bg-cream">
       <DashboardNav active="orders" />
@@ -54,13 +60,30 @@ export default async function Dashboard() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="font-display text-2xl font-bold text-ink">{vendor.name}</h1>
-            <Link href={`/${vendor.slug}`} className="text-sm text-spice">{link}</Link>
+            <div className="mt-2 max-w-xl"><ShareLink link={link} /></div>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <form action={toggleAcceptingOrders.bind(null, !vendor.accepting_orders)}>
+              <button className={`rounded-lg px-3.5 py-2 text-sm font-semibold transition ${vendor.accepting_orders ? "bg-curry/15 text-curry hover:bg-curry/20" : "bg-chili/15 text-chili hover:bg-chili/20"}`}>
+                {vendor.accepting_orders ? "● Live — pause orders" : "Paused — resume orders"}
+              </button>
+            </form>
             <Stat label="Open orders" value={String(open.length)} />
             <Stat label="Open total" value={money(dayTotal)} />
           </div>
         </div>
+
+        {!setupDone && (
+          <div className="mt-4 rounded-2xl border border-spice/30 bg-white p-5 shadow-card">
+            <h2 className="font-display text-lg font-bold text-ink">Finish setting up your kitchen</h2>
+            <p className="mt-0.5 text-sm text-ink/50">A few quick steps to start taking orders.</p>
+            <ol className="mt-3 space-y-2.5">
+              <Step done={(servicesCount ?? 0) > 0} href="/dashboard/services" n={1} label="Create a service (e.g. Weekday Lunch)" />
+              <Step done={(dishesCount ?? 0) > 0} href="/dashboard/menu" n={2} label="Add dishes to your menu" />
+              <Step done={false} n={3} label="Share your link in WhatsApp (buttons above)" />
+            </ol>
+          </div>
+        )}
 
         {prep.size > 0 && (
           <div className="mt-4 rounded-xl bg-white p-4 shadow-card">
@@ -95,6 +118,16 @@ export default async function Dashboard() {
       </div>
     </main>
   );
+}
+
+function Step({ done, href, n, label }: { done: boolean; href?: string; n: number; label: string }) {
+  const inner = (
+    <span className="flex items-center gap-3">
+      <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-xs font-bold ${done ? "bg-curry text-white" : "bg-spice/15 text-spice"}`}>{done ? "✓" : n}</span>
+      <span className={`text-sm ${done ? "text-ink/40 line-through" : "font-medium text-ink"}`}>{label}</span>
+    </span>
+  );
+  return <li>{href ? <Link href={href} className="transition hover:opacity-80">{inner}</Link> : inner}</li>;
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
@@ -141,9 +174,7 @@ function OrderCard({ o }: { o: OrderRow }) {
         <div className="flex gap-2">
           {next.map((n) => (
             <form key={n.status} action={updateOrderStatus.bind(null, o.id, n.status)}>
-              <button className={`rounded-lg px-4 py-2 text-sm font-semibold ${n.primary ? "bg-spice text-ink" : "border border-ink/15 text-ink/60"}`}>
-                {n.label}
-              </button>
+              <SubmitButton className={`rounded-lg px-4 py-2 text-sm font-semibold ${n.primary ? "bg-spice text-ink" : "border border-ink/15 text-ink/60"}`}>{n.label}</SubmitButton>
             </form>
           ))}
         </div>

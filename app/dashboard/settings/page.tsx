@@ -2,6 +2,9 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import DashboardNav from "@/components/DashboardNav";
 import { updateVendorSettings } from "@/app/actions";
+import ShareLink from "@/components/ShareLink";
+import LogoUpload from "@/components/LogoUpload";
+import SubmitButton from "@/components/SubmitButton";
 import { siteUrl } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -22,8 +25,13 @@ export default async function SettingsPage() {
         <h1 className="font-display text-2xl font-bold text-ink">Settings</h1>
 
         <div className="mt-3 rounded-xl bg-white p-4 shadow-card">
-          <p className="text-sm text-ink/60">Your ordering link — share this in WhatsApp</p>
-          <p className="font-semibold text-spice break-all">{link}</p>
+          <p className="mb-2 text-sm text-ink/60">Your ordering link — share this in WhatsApp</p>
+          <ShareLink link={link} />
+        </div>
+
+        <div className="mt-4 rounded-xl bg-white p-4 shadow-card">
+          <p className="mb-3 text-sm font-semibold text-ink/70">Kitchen logo</p>
+          <LogoUpload vendorId={vendor.id} current={vendor.logo_url} />
         </div>
 
         <form action={updateVendorSettings} className="mt-4 space-y-3 rounded-xl bg-white p-4 shadow-card">
@@ -50,7 +58,7 @@ export default async function SettingsPage() {
             <textarea name="offline_instructions" defaultValue={vendor.offline_instructions ?? ""} placeholder="e.g. Send Interac e-transfer to payments@mykitchen.com" className="inp" />
           </Labeled>
 
-          <button className="rounded-lg bg-spice px-5 py-2.5 font-semibold text-ink">Save</button>
+          <SubmitButton className="rounded-lg bg-spice px-5 py-2.5 font-semibold text-ink" pendingLabel="Saving…">Save</SubmitButton>
         </form>
       </div>
       <style>{`.inp{width:100%;border:1px solid rgba(42,24,16,.15);border-radius:.5rem;padding:.5rem .75rem}`}</style>

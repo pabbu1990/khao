@@ -3,7 +3,9 @@ export function money(n: number): string {
 }
 
 export function siteUrl(): string {
-  return process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const raw = (process.env.NEXT_PUBLIC_SITE_URL || "").trim().replace(/\/+$/, "");
+  // Only accept a well-formed scheme://host value; otherwise fall back.
+  return /^https?:\/\/[^/]+/.test(raw) ? raw : "http://localhost:3000";
 }
 
 export const ORDER_STATUS_LABEL: Record<string, string> = {

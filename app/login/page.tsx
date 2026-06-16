@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import Logo from "@/components/Logo";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -11,6 +12,11 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [resetMsg, setResetMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("mode") === "signup") setMode("signup");
+  }, []);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -39,13 +45,23 @@ export default function LoginPage() {
 
   const inputCls = "w-full rounded-xl border border-white/10 bg-white/95 px-4 py-3 text-ink placeholder:text-ink/30 outline-none transition focus:ring-4 focus:ring-spice/25";
 
+  async function forgotPassword() {
+    setErr(null);
+    setResetMsg(null);
+    if (!email) { setErr("Enter your email above first, then tap reset."); return; }
+    const supabase = createClient();
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/auth/callback?next=/reset` });
+    if (error) setErr(error.message);
+    else setResetMsg("Check your email for a password reset link.");
+  }
+
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-ink px-6 text-cream">
       <div className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-spice/20 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-24 -left-20 h-72 w-72 rounded-full bg-chili/15 blur-3xl" />
 
       <div className="relative w-full max-w-sm">
-        <span className="font-display text-3xl font-bold tracking-tight text-spice">Khao</span>
+        <span className="flex items-center gap-2"><Logo size={30} /><span className="font-display text-3xl font-bold tracking-tight text-spice">Khao</span></span>
         <h1 className="mt-5 font-display text-3xl font-semibold leading-tight">
           {mode === "signup" ? "Create your kitchen account" : "Welcome back"}
         </h1>
@@ -60,6 +76,13 @@ export default function LoginPage() {
             {loading ? "Please wait…" : mode === "signup" ? "Create account" : "Sign in"}
           </button>
         </form>
+
+        {mode === "signin" && (
+          <button onClick={forgotPassword} className="mt-3 text-sm text-cream/55 transition hover:text-cream">
+            Forgot password?
+          </button>
+        )}
+        {resetMsg && <p className="mt-3 text-sm text-curry">{resetMsg}</p>}
 
         <div className="my-5 flex items-center gap-3 text-xs text-cream/35">
           <span className="h-px flex-1 bg-white/10" /> or <span className="h-px flex-1 bg-white/10" />

@@ -73,6 +73,10 @@ export default function Storefront({ vendor, groups }: { vendor: Vendor; groups:
         <div className="pointer-events-none absolute -right-12 -top-20 h-56 w-56 rounded-full bg-spice/25 blur-3xl" />
         <div className="pointer-events-none absolute -left-16 bottom-0 h-40 w-40 rounded-full bg-chili/20 blur-3xl" />
         <div className="relative mx-auto max-w-2xl">
+          {vendor.logo_url && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={vendor.logo_url} alt="" className="mb-4 h-16 w-16 rounded-2xl object-cover ring-1 ring-white/15" />
+          )}
           <span className="text-[11px] font-semibold uppercase tracking-[0.28em] text-spice">Menu</span>
           <h1 className="mt-1.5 font-display text-[2.6rem] font-semibold leading-[1.05]">{vendor.name}</h1>
           <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-cream/70">

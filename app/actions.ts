@@ -237,12 +237,53 @@ export async function placeOrder(input: PlaceOrderInput): Promise<{ ok: boolean;
   return { ok: true, orderId: order.id };
 }
 
+export async function setVendorLogo(url: string) {
+  const { supabase, vendor } = await getMyVendor();
+  if (!vendor) return;
+  await supabase.from("vendors").update({ logo_url: url || null }).eq("id", vendor.id);
+  revalidatePath("/dashboard/settings");
+}
+
+export async function toggleAcceptingOrders(next: boolean) {
+  const { supabase, vendor } = await getMyVendor();
+  if (!vendor) return;
+  await supabase.from("vendors").update({ accepting_orders: next }).eq("id", vendor.id);
+  revalidatePath("/dashboard");
+}
+
 // ---------- admin (account controls; RLS enforces admin-only) ----------
 export async function setVendorStatus(vendorId: string, status: "active" | "suspended") {
   const { supabase } = await requireUser();
   await supabase.from("vendors").update({ status }).eq("id", vendorId);
   revalidatePath("/admin");
   revalidatePath(`/admin/vendor/${vendorId}`);
+}
+
+// ---------- public contact form ----------
+export async function sendContactMessage(input: { name: string; email: string; phone: string; reason: string }): Promise<{ ok: boolean; error?: string }> {
+  const name = input.name.trim();
+  const email = input.email.trim();
+  const reason = input.reason.trim();
+  if (!name || !email || !reason) return { ok: false, error: "Please fill in your name, email and message." };
+
+  const key = process.env.RESEND_API_KEY;
+  const to = process.env.CONTACT_EMAIL;
+  if (!key || !to) return { ok: false, error: "Contact isn't set up yet — please try again later." };
+
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: process.env.CONTACT_FROM || "Khao <onboarding@resend.dev>",
+      to: [to],
+      reply_to: email,
+      subject: `New Khao contact: ${name}`,
+      text: `Name: ${name}\nEmail: ${email}\nPhone: ${input.phone.trim() || "-"}\n\nMessage:\n${reason}`,
+    }),
+  });
+
+  if (!res.ok) return { ok: false, error: "Couldn't send your message. Please try again." };
+  return { ok: true };
 }
 
 // ---------- auth ----------
