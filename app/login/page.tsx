@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { siteUrl } from "@/lib/format";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -33,7 +32,7 @@ export default function LoginPage() {
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${siteUrl()}/auth/callback?next=/post-login` },
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=/post-login` },
     });
     if (error) setErr(error.message);
   }
