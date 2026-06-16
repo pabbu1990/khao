@@ -1,5 +1,7 @@
--- Khao — database schema, RLS, triggers
--- Apply in Supabase: SQL Editor → paste → Run. (Or supabase db push.)
+-- Khao — complete database setup (idempotent).
+-- Safe to run any number of times: it creates what's missing and skips what exists.
+-- Works as a FRESH install AND as an UPGRADE of an existing database.
+-- (One-time duplicate-vendor cleanup lives in cleanup_duplicate_vendors.sql.)
 
 -- ---------- enums ----------
 do $$ begin
@@ -38,7 +40,11 @@ create table if not exists public.vendors (
   accepting_orders     boolean not null default true,
   created_at           timestamptz not null default now()
 );
-create index if not exists vendors_owner_idx on public.vendors(owner_id);
+do $$ begin
+  create unique index if not exists vendors_owner_idx on public.vendors(owner_id);
+exception when others then
+  raise notice 'Skipped unique index on vendors.owner_id (duplicate owners exist). Run cleanup_duplicate_vendors.sql, then re-run this.';
+end $$;
 
 -- ---------- services (meal-time menus within a kitchen) ----------
 create table if not exists public.services (
@@ -117,6 +123,15 @@ create table if not exists public.reviews (
   comment     text,
   created_at  timestamptz not null default now()
 );
+
+-- ---------- ensure later-added columns exist on existing tables ----------
+alter table public.vendors      add column if not exists accept_cash boolean not null default true;
+alter table public.vendors      add column if not exists accept_interac boolean not null default true;
+alter table public.orders       add column if not exists payment_label text;
+alter table public.dishes       add column if not exists service_id uuid references public.services(id) on delete cascade;
+alter table public.order_items   add column if not exists service_snapshot text;
+alter table public.services      add column if not exists service_date date;
+alter table public.services      add column if not exists service_dates date[] not null default '{}';
 
 -- ---------- helper: is the current user an admin? ----------
 create or replace function public.is_admin()
@@ -216,8 +231,37 @@ create policy reviews_public_read on public.reviews for select using (true);
 drop policy if exists reviews_public_insert on public.reviews;
 create policy reviews_public_insert on public.reviews for insert with check (true);
 
--- realtime: include orders so the dashboard updates live
-alter publication supabase_realtime add table public.orders;
-alter publication supabase_realtime add table public.dishes;
-alter publication supabase_realtime add table public.services;
-alter publication supabase_realtime add table public.vendors;
+-- realtime: include these tables so the dashboard + storefront update live
+do $$ begin alter publication supabase_realtime add table public.orders;   exception when others then null; end $$;
+do $$ begin alter publication supabase_realtime add table public.dishes;   exception when others then null; end $$;
+do $$ begin alter publication supabase_realtime add table public.services; exception when others then null; end $$;
+do $$ begin alter publication supabase_realtime add table public.vendors;  exception when others then null; end $$;
+
+-- ================= STORAGE (dish-photos bucket) =================
+-- Public bucket so dish photos can be shown on the storefront without auth.
+insert into storage.buckets (id, name, public)
+values ('dish-photos', 'dish-photos', true)
+on conflict (id) do nothing;
+
+-- Anyone can VIEW dish photos (public storefront).
+drop policy if exists "dish photos public read" on storage.objects;
+create policy "dish photos public read" on storage.objects
+  for select to public
+  using (bucket_id = 'dish-photos');
+
+-- Signed-in vendors can UPLOAD into the bucket.
+drop policy if exists "dish photos vendor upload" on storage.objects;
+create policy "dish photos vendor upload" on storage.objects
+  for insert to authenticated
+  with check (bucket_id = 'dish-photos');
+
+-- Signed-in vendors can replace / remove photos they manage.
+drop policy if exists "dish photos vendor update" on storage.objects;
+create policy "dish photos vendor update" on storage.objects
+  for update to authenticated
+  using (bucket_id = 'dish-photos');
+
+drop policy if exists "dish photos vendor delete" on storage.objects;
+create policy "dish photos vendor delete" on storage.objects
+  for delete to authenticated
+  using (bucket_id = 'dish-photos');

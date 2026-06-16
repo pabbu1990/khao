@@ -35,7 +35,7 @@ export default async function ReportPage({ searchParams }: { searchParams: { ran
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
-  const { data: vendor } = await supabase.from("vendors").select("id").eq("owner_id", user.id).maybeSingle();
+  const { data: vendor } = await supabase.from("vendors").select("id").eq("owner_id", user.id).order("created_at", { ascending: true }).limit(1).maybeSingle();
   if (!vendor) redirect("/dashboard");
 
   const range = searchParams.range ?? "7d";

@@ -6,7 +6,8 @@ import RealtimeRefresher from "@/components/RealtimeRefresher";
 import ShareLink from "@/components/ShareLink";
 import SubmitButton from "@/components/SubmitButton";
 import LiveStamp from "@/components/LiveStamp";
-import { createVendor, updateOrderStatus, toggleAcceptingOrders } from "@/app/actions";
+import { updateOrderStatus, toggleAcceptingOrders } from "@/app/actions";
+import OnboardingForm from "@/components/OnboardingForm";
 import { money, siteUrl, ORDER_STATUS_LABEL } from "@/lib/format";
 import type { Order, OrderItem, OrderStatus } from "@/lib/types";
 
@@ -19,8 +20,8 @@ export default async function Dashboard() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: vendor } = await supabase.from("vendors").select("*").eq("owner_id", user.id).maybeSingle();
-  if (!vendor) return <Onboarding />;
+  const { data: vendor } = await supabase.from("vendors").select("*").eq("owner_id", user.id).order("created_at", { ascending: true }).limit(1).maybeSingle();
+  if (!vendor) return <OnboardingForm />;
 
   const { data: orders } = await supabase
     .from("orders").select("*, order_items(*)").eq("vendor_id", vendor.id)
@@ -192,18 +193,3 @@ function OrderCard({ o }: { o: OrderRow }) {
   );
 }
 
-function Onboarding() {
-  return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-clip bg-ink px-6 text-cream">
-      <div className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-spice/20 blur-3xl" />
-      <form action={createVendor} className="relative w-full max-w-md space-y-3">
-        <span className="font-display text-2xl font-bold tracking-tight text-spice">Khao</span>
-        <h1 className="font-display text-3xl font-bold">Set up your kitchen</h1>
-        <p className="text-sm leading-relaxed text-cream/70">This creates your public ordering page. Your link is made from your kitchen name — you can change it, your hours and payment details later in Settings.</p>
-        <input name="name" required placeholder="Kitchen name (e.g. Spice Divine)" className="w-full rounded-xl border border-white/10 bg-white/95 px-4 py-3 text-ink placeholder:text-ink/30 outline-none transition focus:ring-4 focus:ring-spice/25" />
-        <input name="area" placeholder="Area (e.g. Barrhaven)" className="w-full rounded-xl border border-white/10 bg-white/95 px-4 py-3 text-ink placeholder:text-ink/30 outline-none transition focus:ring-4 focus:ring-spice/25" />
-        <button className="w-full rounded-xl bg-spice px-4 py-3 font-semibold text-ink shadow-sm transition hover:brightness-[1.04] active:scale-[.99]">Create my kitchen</button>
-      </form>
-    </main>
-  );
-}

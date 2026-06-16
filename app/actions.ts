@@ -19,6 +19,8 @@ async function getMyVendor() {
     .from("vendors")
     .select("*")
     .eq("owner_id", user.id)
+    .order("created_at", { ascending: true })
+    .limit(1)
     .maybeSingle();
   return { supabase, user, vendor };
 }
@@ -28,15 +30,25 @@ function slugify(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 
-export async function createVendor(formData: FormData) {
+export async function createVendor(formData: FormData): Promise<{ ok: boolean; error?: string }> {
   const { user } = await requireUser();
   const name = String(formData.get("name") || "").trim();
-  if (!name) return;
+  if (!name) return { ok: false, error: "Enter a kitchen name." };
 
-  const area = String(formData.get("area") || "");
+  const area = String(formData.get("area") || "").trim();
   const base = slugify(name) || "kitchen";
   const rand = () => Math.random().toString(36).slice(2, 6);
   const admin = createAdminClient();
+
+  // If this owner already has a kitchen, don't create another.
+  const { data: existing } = await admin.from("vendors").select("id").eq("owner_id", user.id).limit(1).maybeSingle();
+  if (existing) { revalidatePath("/dashboard"); return { ok: true }; }
+
+  // Reject a kitchen with the same name in the same area (case-insensitive).
+  let dq = admin.from("vendors").select("id").ilike("name", name);
+  if (area) dq = dq.ilike("area", area);
+  const { data: dupe } = await dq.limit(1).maybeSingle();
+  if (dupe) return { ok: false, error: `A kitchen named "${name}"${area ? ` in ${area}` : ""} already exists. Please pick a different name${area ? "" : " or add your area"}.` };
 
   // Ensure a profile row exists (vendors.owner_id references it). Don't overwrite an existing role.
   await admin.from("profiles").upsert({ id: user.id, role: "vendor" }, { onConflict: "id", ignoreDuplicates: true });
@@ -49,10 +61,10 @@ export async function createVendor(formData: FormData) {
     slug = `${base}-${rand()}`;
     ({ error } = await admin.from("vendors").insert({ owner_id: user.id, name, slug, area }));
   }
-  if (error) return;
+  if (error) return { ok: false, error: error.message };
 
   revalidatePath("/dashboard");
-  redirect("/dashboard");
+  return { ok: true };
 }
 
 export async function updateVendorSettings(formData: FormData) {

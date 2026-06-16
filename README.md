@@ -15,8 +15,7 @@ Next.js (App Router) · TypeScript · Tailwind · Supabase (Postgres + Auth + Re
 - **Admin** — `/admin` (login, admin role): all kitchens, drill into any vendor, suspend/reactivate.
 
 ## Local setup
-1. **Create a Supabase project** (free tier). In *SQL Editor*, paste and run `supabase/schema.sql`, then run `supabase/storage.sql` (creates the `dish-photos` bucket used for dish image uploads).
-   - *Upgrading an existing DB?* Run the `supabase/migration_*.sql` files you haven't applied yet (payment label, payment methods, services).
+1. **Create a Supabase project** (free tier). In *SQL Editor*, paste and run `supabase/setup.sql` — it's idempotent (safe to run any time) and sets up everything: tables, RLS, triggers, realtime, and the `dish-photos` storage bucket. Re-run it whenever the schema changes. (See `supabase/README.md` for details, plus the one-time `cleanup_duplicate_vendors.sql`.)
 2. **Auth**: in Supabase → Authentication → Providers, enable **Email** (magic link) and **Google** (add OAuth credentials). Set the Site URL to `http://localhost:3000` and add `http://localhost:3000/auth/callback` as a redirect URL.
 3. Copy `.env.example` to `.env.local` and fill in:
    - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (Settings → API)
