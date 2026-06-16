@@ -1,8 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import DashboardNav from "@/components/DashboardNav";
-import { addService } from "@/app/actions";
 import ServiceRow from "@/components/ServiceRow";
+import AddServiceForm from "@/components/AddServiceForm";
 import type { Service } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -29,15 +29,7 @@ export default async function ServicesPage() {
           show on your page. The date just tells you and your customers which day the service is for.
         </p>
 
-        <form action={addService} className="mt-4 space-y-3 rounded-xl bg-white p-4 shadow-card">
-          <input name="name" required placeholder="Service name (e.g. Weekday Lunch)" className="w-full rounded-lg border border-ink/15 px-3 py-2" />
-          <input name="description" placeholder="Short description (optional)" className="w-full rounded-lg border border-ink/15 px-3 py-2" />
-          <label className="block">
-            <span className="text-sm font-medium text-ink/70">Service date <span className="text-ink/40">(optional)</span></span>
-            <input type="date" name="service_date" className="mt-1 block w-full rounded-lg border border-ink/15 px-3 py-2" />
-          </label>
-          <button className="rounded-lg bg-spice px-4 py-2 font-semibold text-ink">Add service</button>
-        </form>
+        <AddServiceForm />
 
         <div className="mt-5 space-y-2">
           {list.length === 0 && <p className="text-ink/50 py-6 text-center">No services yet — add one above, then add dishes to it under Menu.</p>}

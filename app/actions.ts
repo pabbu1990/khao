@@ -91,18 +91,22 @@ export async function updateVendorSettings(formData: FormData) {
 }
 
 // ---------- services (meal-time menus) ----------
-export async function addService(formData: FormData) {
+export async function addService(formData: FormData): Promise<{ ok: boolean; error?: string }> {
   const { supabase, vendor } = await getMyVendor();
-  if (!vendor) return;
-  await supabase.from("services").insert({
+  if (!vendor) return { ok: false, error: "No kitchen found." };
+  const name = String(formData.get("name") || "").trim();
+  if (!name) return { ok: false, error: "Enter a service name." };
+  const { error } = await supabase.from("services").insert({
     vendor_id: vendor.id,
-    name: String(formData.get("name") || "").trim(),
+    name,
     description: String(formData.get("description") || "") || null,
-    service_date: String(formData.get("service_date") || "") || null,
+    service_dates: formData.getAll("service_dates").map(String),
     is_active: true,
   });
+  if (error) return { ok: false, error: "Couldn't add the service. Please try again." };
   revalidatePath("/dashboard/services");
   revalidatePath("/dashboard/menu");
+  return { ok: true };
 }
 
 export async function updateService(formData: FormData) {
@@ -113,7 +117,7 @@ export async function updateService(formData: FormData) {
   await supabase.from("services").update({
     name: String(formData.get("name") || "").trim(),
     description: String(formData.get("description") || "") || null,
-    service_date: String(formData.get("service_date") || "") || null,
+    service_dates: formData.getAll("service_dates").map(String),
   }).eq("id", id).eq("vendor_id", vendor.id);
   revalidatePath("/dashboard/services");
   revalidatePath("/dashboard/menu");
@@ -135,18 +139,35 @@ export async function deleteService(serviceId: string) {
 }
 
 // ---------- menu (dish) CRUD ----------
-export async function addDish(formData: FormData) {
+export async function addDish(formData: FormData): Promise<{ ok: boolean; error?: string }> {
   const { supabase, vendor } = await getMyVendor();
-  if (!vendor) return;
-  await supabase.from("dishes").insert({
+  if (!vendor) return { ok: false, error: "No kitchen found." };
+  const name = String(formData.get("name") || "").trim();
+  if (!name) return { ok: false, error: "Enter a dish name." };
+  const { error } = await supabase.from("dishes").insert({
     vendor_id: vendor.id,
     service_id: String(formData.get("service_id") || "") || null,
-    name: String(formData.get("name") || "").trim(),
+    name,
     description: String(formData.get("description") || ""),
     price_cad: Number(formData.get("price_cad") || 0),
     veg: formData.get("veg") === "on",
     photo_url: String(formData.get("photo_url") || "") || null,
   });
+  if (error) return { ok: false, error: "Couldn't add the dish. Please try again." };
+  revalidatePath("/dashboard/menu");
+  return { ok: true };
+}
+
+export async function updateDish(formData: FormData) {
+  const { supabase, vendor } = await getMyVendor();
+  if (!vendor) return;
+  const id = String(formData.get("dish_id") || "");
+  if (!id) return;
+  await supabase.from("dishes").update({
+    name: String(formData.get("name") || "").trim(),
+    description: String(formData.get("description") || "") || null,
+    price_cad: Number(formData.get("price_cad") || 0),
+  }).eq("id", id).eq("vendor_id", vendor.id);
   revalidatePath("/dashboard/menu");
 }
 

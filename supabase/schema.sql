@@ -48,6 +48,7 @@ create table if not exists public.services (
   description     text,
   available_days  text[] not null default '{}',
   service_date    date,
+  service_dates   date[] not null default '{}',
   is_active       boolean not null default true,
   sort_order      integer not null default 0,
   created_at      timestamptz not null default now()

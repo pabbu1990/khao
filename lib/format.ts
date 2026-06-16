@@ -24,3 +24,8 @@ export function formatServiceDate(d: string): string {
   const dt = new Date(Date.UTC(y, m - 1, day));
   return new Intl.DateTimeFormat("en-CA", { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" }).format(dt);
 }
+
+export function formatServiceDates(dates: string[]): string {
+  if (!dates || dates.length === 0) return "";
+  return [...dates].sort().map(formatServiceDate).join(", ");
+}

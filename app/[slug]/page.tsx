@@ -39,7 +39,7 @@ export default async function StorefrontPage({ params }: { params: { slug: strin
 
   const groups = activeServices
     .map((s) => ({
-      service: { id: s.id, name: s.name, description: s.description, date: s.service_date },
+      service: { id: s.id, name: s.name, description: s.description, dates: s.service_dates },
       dishes: dishes.filter((d) => d.service_id === s.id),
     }))
     .filter((g) => g.dishes.length > 0);

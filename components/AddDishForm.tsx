@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { addDish } from "@/app/actions";
@@ -14,11 +14,19 @@ export default function AddDishForm({ vendorId, services }: { vendorId: string; 
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
   const [serviceId, setServiceId] = useState(services[0]?.id ?? "");
-  const [veg, setVeg] = useState(true);
+  const [veg, setVeg] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (msg) {
+      const t = setTimeout(() => setMsg(null), 4000);
+      return () => clearTimeout(t);
+    }
+  }, [msg]);
 
   function pick(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0] ?? null;
@@ -34,6 +42,7 @@ export default function AddDishForm({ vendorId, services }: { vendorId: string; 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setErr(null);
+    setMsg(null);
     setBusy(true);
     try {
       let photoUrl = "";
@@ -55,11 +64,12 @@ export default function AddDishForm({ vendorId, services }: { vendorId: string; 
       if (serviceId) fd.set("service_id", serviceId);
       if (veg) fd.set("veg", "on");
       if (photoUrl) fd.set("photo_url", photoUrl);
-      await addDish(fd);
-
-      setName(""); setPrice(""); setDescription(""); setVeg(true);
+      const res = await addDish(fd);
+      if (!res.ok) { setErr(res.error || "Couldn't add the dish."); return; }
+      setName(""); setPrice(""); setDescription(""); setVeg(false);
       setFile(null); setPreview(null);
       if (fileRef.current) fileRef.current.value = "";
+      setMsg("Dish added.");
       router.refresh();
     } finally {
       setBusy(false);
@@ -99,6 +109,7 @@ export default function AddDishForm({ vendorId, services }: { vendorId: string; 
       </button>
 
       {err && <p className="text-chili text-sm sm:col-span-2">{err}</p>}
+      {msg && <p className="text-sm font-medium text-curry sm:col-span-2">{msg}</p>}
     </form>
   );
 }

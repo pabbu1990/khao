@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Dish, Vendor, Fulfilment } from "@/lib/types";
-import { money, formatServiceDate } from "@/lib/format";
+import { money, formatServiceDates } from "@/lib/format";
 import { placeOrder } from "@/app/actions";
 import RealtimeRefresh from "@/components/RealtimeRefresh";
 import Logo from "@/components/Logo";
@@ -40,7 +40,7 @@ function validateEmail(email: string): string {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? "" : "Enter a valid email address.";
 }
 
-type Group = { service: { id: string; name: string; description: string | null; date: string | null }; dishes: Dish[] };
+type Group = { service: { id: string; name: string; description: string | null; dates: string[] }; dishes: Dish[] };
 
 export default function Storefront({ vendor, groups }: { vendor: Vendor; groups: Group[] }) {
   const router = useRouter();
@@ -151,7 +151,7 @@ export default function Storefront({ vendor, groups }: { vendor: Vendor; groups:
               <div key={g.service.id}>
                 <div className="flex items-center gap-3">
                   <h2 className="font-display text-2xl font-semibold text-ink">{g.service.name}</h2>
-                  {g.service.date && <span className="rounded-full bg-panel px-2.5 py-0.5 text-xs font-semibold text-ink/60">{formatServiceDate(g.service.date)}</span>}
+                  {g.service.dates.length > 0 && <span className="rounded-full bg-panel px-2.5 py-0.5 text-xs font-semibold text-ink/60">{formatServiceDates(g.service.dates)}</span>}
                   <span className="h-px flex-1 bg-line" />
                 </div>
                 {g.service.description && <p className="mt-1 text-sm text-ink/50">{g.service.description}</p>}
