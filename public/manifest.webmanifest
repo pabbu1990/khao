@@ -1,0 +1,10 @@
+{
+  "name": "Khao",
+  "short_name": "Khao",
+  "description": "Order fresh home-cooked food from local kitchens.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#E0922F",
+  "icons": []
+}

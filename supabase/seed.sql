@@ -1,0 +1,17 @@
+-- Placeholder seed for local testing. Replace with your real Ottawa vendors.
+-- NOTE: vendors need an owner_id (a real auth user). For quick UI testing you can
+-- temporarily relax this, but in normal use a vendor is created via signup.
+--
+-- Example (run AFTER you have created an auth user and know its uuid):
+--
+-- insert into public.profiles (id, role, full_name)
+-- values ('00000000-0000-0000-0000-000000000001', 'vendor', 'Spice Divine');
+--
+-- insert into public.vendors (owner_id, slug, name, bio, area, hours, accept_offline, offline_instructions)
+-- values ('00000000-0000-0000-0000-000000000001', 'spice-divine', 'Spice Divine Tiffin',
+--         'Fresh homestyle South Indian meals.', 'Barrhaven', 'Mon–Fri, lunch & dinner',
+--         true, 'Pay by Interac e-transfer to spicedivine@email.com');
+--
+-- insert into public.dishes (vendor_id, name, description, price_cad, veg, available_days)
+-- select id, 'Veg Thali', 'Rice, dal, 2 sabzi, roti, salad', 11.00, true, '{Mon,Tue,Wed,Thu,Fri}'
+-- from public.vendors where slug = 'spice-divine';
