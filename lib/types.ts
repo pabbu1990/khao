@@ -30,6 +30,7 @@ export interface Service {
   name: string;
   description: string | null;
   available_days: string[];
+  service_date: string | null;
   is_active: boolean;
   sort_order: number;
   created_at: string;

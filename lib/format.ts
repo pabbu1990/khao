@@ -16,3 +16,11 @@ export const ORDER_STATUS_LABEL: Record<string, string> = {
   declined: "Declined",
   cancelled: "Cancelled",
 };
+
+export function formatServiceDate(d: string): string {
+  // d is "YYYY-MM-DD"; format as "Mon, Jun 16" without timezone drift.
+  const [y, m, day] = d.split("-").map(Number);
+  if (!y || !m || !day) return d;
+  const dt = new Date(Date.UTC(y, m - 1, day));
+  return new Intl.DateTimeFormat("en-CA", { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" }).format(dt);
+}

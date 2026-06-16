@@ -18,11 +18,6 @@ export default async function StorefrontPage({ params }: { params: { slug: strin
   if (!vendor) notFound();
   const v = vendor as Vendor;
 
-  // Today's weekday in Ottawa, e.g. "Mon"
-  const today = new Intl.DateTimeFormat("en-CA", { weekday: "short", timeZone: "America/Toronto" })
-    .format(new Date())
-    .replace(/[^A-Za-z]/g, "");
-
   const { data: servicesData } = await supabase
     .from("services")
     .select("*")
@@ -31,9 +26,7 @@ export default async function StorefrontPage({ params }: { params: { slug: strin
     .order("sort_order")
     .order("created_at");
 
-  const activeServices = (servicesData ?? []).filter(
-    (s: Service) => s.available_days.length === 0 || s.available_days.includes(today)
-  ) as Service[];
+  const activeServices = (servicesData ?? []) as Service[];
 
   const { data: dishesData } = await supabase
     .from("dishes")
@@ -46,7 +39,7 @@ export default async function StorefrontPage({ params }: { params: { slug: strin
 
   const groups = activeServices
     .map((s) => ({
-      service: { id: s.id, name: s.name, description: s.description },
+      service: { id: s.id, name: s.name, description: s.description, date: s.service_date },
       dishes: dishes.filter((d) => d.service_id === s.id),
     }))
     .filter((g) => g.dishes.length > 0);

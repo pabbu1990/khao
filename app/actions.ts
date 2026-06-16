@@ -98,9 +98,23 @@ export async function addService(formData: FormData) {
     vendor_id: vendor.id,
     name: String(formData.get("name") || "").trim(),
     description: String(formData.get("description") || "") || null,
-    available_days: formData.getAll("days").map(String),
+    service_date: String(formData.get("service_date") || "") || null,
     is_active: true,
   });
+  revalidatePath("/dashboard/services");
+  revalidatePath("/dashboard/menu");
+}
+
+export async function updateService(formData: FormData) {
+  const { supabase, vendor } = await getMyVendor();
+  if (!vendor) return;
+  const id = String(formData.get("service_id") || "");
+  if (!id) return;
+  await supabase.from("services").update({
+    name: String(formData.get("name") || "").trim(),
+    description: String(formData.get("description") || "") || null,
+    service_date: String(formData.get("service_date") || "") || null,
+  }).eq("id", id).eq("vendor_id", vendor.id);
   revalidatePath("/dashboard/services");
   revalidatePath("/dashboard/menu");
 }

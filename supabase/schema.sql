@@ -46,7 +46,8 @@ create table if not exists public.services (
   vendor_id       uuid not null references public.vendors(id) on delete cascade,
   name            text not null,
   description     text,
-  available_days  text[] not null default '{}',  -- empty = always (when active)
+  available_days  text[] not null default '{}',
+  service_date    date,
   is_active       boolean not null default true,
   sort_order      integer not null default 0,
   created_at      timestamptz not null default now()
