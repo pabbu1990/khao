@@ -16,9 +16,22 @@ const sans = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://thekhao.com"),
   title: "Khao — order home food",
   description: "Order fresh home-cooked food straight from local kitchens.",
   manifest: "/manifest.webmanifest",
+  openGraph: {
+    title: "Khao — order home food",
+    description: "Order fresh home-cooked food straight from local kitchens.",
+    url: "https://thekhao.com",
+    siteName: "Khao",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Khao — order home food",
+    description: "Order fresh home-cooked food straight from local kitchens.",
+  },
 };
 
 export const viewport: Viewport = {
