@@ -96,7 +96,6 @@ export async function updateVendorSettings(formData: FormData) {
       accept_cash: acceptCash,
       accept_interac: acceptInterac,
       offline_instructions: String(formData.get("offline_instructions") || ""),
-      accepting_orders: formData.get("accepting_orders") === "on",
     })
     .eq("id", vendor.id);
   revalidatePath("/dashboard/settings");

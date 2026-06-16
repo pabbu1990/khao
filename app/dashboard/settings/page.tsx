@@ -41,10 +41,6 @@ export default async function SettingsPage() {
           <Labeled label="Area"><input name="area" defaultValue={vendor.area ?? ""} className="inp" /></Labeled>
           <Labeled label="Hours"><input name="hours" defaultValue={vendor.hours ?? ""} className="inp" /></Labeled>
 
-          <label className="flex items-center gap-2 text-sm text-ink/80">
-            <input type="checkbox" name="accepting_orders" defaultChecked={vendor.accepting_orders} /> Currently accepting orders
-          </label>
-
           <hr className="border-ink/10" />
           <p className="text-sm font-semibold text-ink">Payment methods</p>
           <p className="text-sm text-ink/60">Choose which options customers can pick at checkout. At least one stays on.</p>

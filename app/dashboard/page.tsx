@@ -6,6 +6,7 @@ import RealtimeRefresher from "@/components/RealtimeRefresher";
 import ShareLink from "@/components/ShareLink";
 import SubmitButton from "@/components/SubmitButton";
 import LiveStamp from "@/components/LiveStamp";
+import RecentOrderRow from "@/components/RecentOrderRow";
 import { updateOrderStatus, toggleAcceptingOrders } from "@/app/actions";
 import OnboardingForm from "@/components/OnboardingForm";
 import { money, siteUrl, ORDER_STATUS_LABEL } from "@/lib/format";
@@ -14,6 +15,9 @@ import type { Order, OrderItem, OrderStatus } from "@/lib/types";
 export const dynamic = "force-dynamic";
 
 type OrderRow = Order & { order_items: OrderItem[] };
+
+const torontoDate = (iso: string | Date) =>
+  new Intl.DateTimeFormat("en-CA", { timeZone: "America/Toronto" }).format(new Date(iso));
 
 export default async function Dashboard() {
   const supabase = createClient();
@@ -36,18 +40,32 @@ export default async function Dashboard() {
     const key = it.service_snapshot ? `${it.service_snapshot} · ${it.name_snapshot}` : it.name_snapshot;
     prep.set(key, (prep.get(key) || 0) + it.qty);
   }
-  const dayTotal = open.reduce((s, o) => s + Number(o.subtotal_cad), 0);
+  const todayTO = torontoDate(new Date());
+  let todayOrders = 0;
+  let todayRevenue = 0;
+  for (const o of rows) {
+    if (torontoDate(o.created_at) !== todayTO) continue;
+    if (o.status === "declined" || o.status === "cancelled") continue;
+    todayOrders++;
+    todayRevenue += Number(o.subtotal_cad);
+  }
+  const doneToday = done.filter((o) => torontoDate(o.created_at) === todayTO);
   const link = `${siteUrl()}/${vendor.slug}`;
 
   const { count: servicesCount } = await supabase.from("services").select("*", { count: "exact", head: true }).eq("vendor_id", vendor.id);
   const { count: dishesCount } = await supabase.from("dishes").select("*", { count: "exact", head: true }).eq("vendor_id", vendor.id);
-  const setupDone = (servicesCount ?? 0) > 0 && (dishesCount ?? 0) > 0;
+  const hasServices = (servicesCount ?? 0) > 0;
+  const hasDishes = (dishesCount ?? 0) > 0;
+  const setupDone = hasServices && hasDishes;
 
   return (
     <main className="min-h-screen bg-cream">
       <DashboardNav active="orders" />
       <RealtimeRefresher vendorId={vendor.id} />
 
+      {!setupDone ? (
+        <GettingStarted vendorName={vendor.name} hasServices={hasServices} hasDishes={hasDishes} />
+      ) : (
       <div className="mx-auto max-w-4xl px-4 py-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -62,18 +80,6 @@ export default async function Dashboard() {
           </form>
         </div>
 
-        {!setupDone && (
-          <div className="mt-5 rounded-2xl border border-spice/30 bg-white p-5 shadow-card">
-            <h2 className="font-display text-lg font-bold text-ink">Finish setting up your kitchen</h2>
-            <p className="mt-0.5 text-sm text-ink/50">A few quick steps to start taking orders.</p>
-            <ol className="mt-3 space-y-2.5">
-              <Step done={(servicesCount ?? 0) > 0} href="/dashboard/services" n={1} label="Create a service (e.g. Weekday Lunch)" />
-              <Step done={(dishesCount ?? 0) > 0} href="/dashboard/menu" n={2} label="Add dishes to your menu" />
-              <Step done={false} n={3} label="Share your link with customers (below)" />
-            </ol>
-          </div>
-        )}
-
         <div className="mt-5 rounded-2xl border border-spice/30 bg-white p-5 shadow-card">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="font-display text-lg font-bold text-ink">Your ordering link</h2>
@@ -86,9 +92,10 @@ export default async function Dashboard() {
           <div className="mt-3"><ShareLink link={link} /></div>
         </div>
 
-        <div className="mt-5 grid max-w-sm grid-cols-2 gap-3">
+        <div className="mt-5 grid grid-cols-3 gap-4">
           <Stat label="Open orders" value={String(open.length)} />
-          <Stat label="Open total" value={money(dayTotal)} />
+          <Stat label="Today's orders" value={String(todayOrders)} />
+          <Stat label="Today's revenue" value={money(todayRevenue)} />
         </div>
 
         {prep.size > 0 && (
@@ -114,49 +121,76 @@ export default async function Dashboard() {
           )}
         </section>
 
-        {done.length > 0 && (
+        {doneToday.length > 0 && (
           <section className="mt-8">
-            <h2 className="mb-2 font-display text-lg font-bold text-ink/60">Recent</h2>
+            <h2 className="mb-2 font-display text-lg font-bold text-ink/60">Recent <span className="font-normal text-ink/40">· today</span></h2>
             <div className="divide-y divide-line overflow-hidden rounded-2xl bg-white shadow-card">
-              {done.slice(0, 15).map((o) => (
-                <div key={o.id} className="flex items-center justify-between px-4 py-3 text-sm">
-                  <span className="text-ink/70">{o.customer_name} <span className="text-ink/35">· {o.order_items.reduce((s, it) => s + it.qty, 0)} items</span></span>
-                  <span className="text-ink/50">{ORDER_STATUS_LABEL[o.status]} · {money(Number(o.subtotal_cad))}</span>
-                </div>
-              ))}
+              {doneToday.slice(0, 25).map((o) => <RecentOrderRow key={o.id} o={o} />)}
             </div>
+            <Link href="/dashboard/report" className="mt-3 inline-block text-sm font-semibold text-spice">See all orders in Report →</Link>
           </section>
         )}
       </div>
+      )}
     </main>
   );
 }
 
-function Step({ done, href, n, label }: { done: boolean; href?: string; n: number; label: string }) {
-  const inner = (
-    <span className="flex items-center gap-3">
-      <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-xs font-bold ${done ? "bg-curry text-white" : "bg-spice/15 text-spice"}`}>{done ? "✓" : n}</span>
-      <span className={`text-sm ${done ? "text-ink/40 line-through" : "font-medium text-ink"}`}>{label}</span>
-    </span>
+function GettingStarted({ vendorName, hasServices, hasDishes }: { vendorName: string; hasServices: boolean; hasDishes: boolean }) {
+  return (
+    <div className="mx-auto max-w-2xl px-4 py-10">
+      <h1 className="font-display text-3xl font-bold text-ink">Welcome, {vendorName}</h1>
+      <p className="mt-1.5 text-ink/60">Let&rsquo;s get your kitchen ready to take orders — three quick steps.</p>
+      <div className="mt-6 space-y-3">
+        <SetupStep n={1} done={hasServices} active={!hasServices}
+          title="Create a service"
+          desc="Group your menu by meal — e.g. Weekday Lunch, Weekend Specials. You can add a date too."
+          cta="Create your first service" href="/dashboard/services" />
+        <SetupStep n={2} done={hasDishes} active={hasServices && !hasDishes} locked={!hasServices}
+          title="Add dishes to your menu"
+          desc="Add what you're cooking, with prices and an optional photo."
+          cta="Add dishes" href="/dashboard/menu" />
+        <SetupStep n={3} done={false} active={false} locked
+          title="Share your link with customers"
+          desc="Once your menu's ready, share your page on WhatsApp — every order lands right here on this dashboard." />
+      </div>
+    </div>
   );
-  return <li>{href ? <Link href={href} className="transition hover:opacity-80">{inner}</Link> : inner}</li>;
+}
+
+function SetupStep({ n, done, active, locked, title, desc, cta, href }: { n: number; done: boolean; active?: boolean; locked?: boolean; title: string; desc: string; cta?: string; href?: string }) {
+  return (
+    <div className={`rounded-2xl border bg-white p-5 shadow-card transition ${active ? "border-spice/40 ring-2 ring-spice/15" : "border-line"}`}>
+      <div className="flex items-start gap-4">
+        <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-full text-sm font-bold ${done ? "bg-curry text-white" : active ? "bg-spice text-ink" : "bg-ink/5 text-ink/40"}`}>{done ? "✓" : n}</span>
+        <div className="flex-1">
+          <p className={`font-display text-lg font-bold ${done || active ? "text-ink" : "text-ink/50"}`}>{title}</p>
+          <p className="mt-0.5 text-sm text-ink/55">{desc}</p>
+          {active && cta && href && (
+            <Link href={href} className="mt-3 inline-block rounded-xl bg-spice px-5 py-2.5 font-semibold text-ink shadow-sm transition hover:brightness-[1.04] active:scale-[.99]">{cta} →</Link>
+          )}
+          {done && <span className="mt-2 inline-block text-sm font-semibold text-curry">Done</span>}
+          {locked && !done && <span className="mt-2 inline-block text-sm text-ink/35">Complete the step above first</span>}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl bg-white p-4 shadow-card">
-      <p className="text-2xl font-bold text-ink">{value}</p>
-      <p className="text-xs text-ink/50">{label}</p>
+    <div className="rounded-2xl bg-white p-5 shadow-card">
+      <p className="text-3xl font-bold text-ink">{value}</p>
+      <p className="mt-0.5 text-sm text-ink/50">{label}</p>
     </div>
   );
 }
 
 function OrderCard({ o }: { o: OrderRow }) {
   const next: { label: string; status: OrderStatus; primary?: boolean }[] =
-    o.status === "placed" ? [{ label: "Accept", status: "accepted", primary: true }, { label: "Decline", status: "declined" }]
-    : o.status === "accepted" ? [{ label: "Mark ready", status: "ready", primary: true }]
-    : o.status === "ready" ? [{ label: "Complete", status: "completed", primary: true }]
-    : [];
+    ["placed", "accepted", "ready"].includes(o.status)
+      ? [{ label: "Complete", status: "completed", primary: true }, { label: "Decline", status: "declined" }]
+      : [];
   const badge = o.status === "placed" ? "bg-spice/15 text-spice" : o.status === "ready" ? "bg-curry/15 text-curry" : "bg-ink/10 text-ink/60";
 
   return (

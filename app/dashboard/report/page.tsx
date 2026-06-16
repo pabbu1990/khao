@@ -20,8 +20,6 @@ const RANGES = [
 const STATUSES = [
   { key: "all", label: "All" },
   { key: "placed", label: "New" },
-  { key: "accepted", label: "Accepted" },
-  { key: "ready", label: "Ready" },
   { key: "completed", label: "Completed" },
   { key: "declined", label: "Declined" },
 ];
