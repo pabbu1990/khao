@@ -1,10 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import DashboardNav from "@/components/DashboardNav";
-import { updateVendorSettings } from "@/app/actions";
 import ShareLink from "@/components/ShareLink";
 import LogoUpload from "@/components/LogoUpload";
-import SubmitButton from "@/components/SubmitButton";
+import SettingsForm from "@/components/SettingsForm";
 import { siteUrl } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -34,39 +33,9 @@ export default async function SettingsPage() {
           <LogoUpload vendorId={vendor.id} current={vendor.logo_url} />
         </div>
 
-        <form action={updateVendorSettings} className="mt-4 space-y-3 rounded-xl bg-white p-4 shadow-card">
-          <Labeled label="Kitchen name"><input name="name" defaultValue={vendor.name} className="inp" /></Labeled>
-          <Labeled label="Link name (your page address)"><input name="slug" defaultValue={vendor.slug} className="inp" /></Labeled>
-          <Labeled label="Bio"><textarea name="bio" defaultValue={vendor.bio ?? ""} className="inp" /></Labeled>
-          <Labeled label="Area"><input name="area" defaultValue={vendor.area ?? ""} className="inp" /></Labeled>
-          <Labeled label="Hours"><input name="hours" defaultValue={vendor.hours ?? ""} className="inp" /></Labeled>
-
-          <hr className="border-ink/10" />
-          <p className="text-sm font-semibold text-ink">Payment methods</p>
-          <p className="text-sm text-ink/60">Choose which options customers can pick at checkout. At least one stays on.</p>
-          <label className="flex items-center gap-2 text-sm text-ink/80">
-            <input type="checkbox" name="accept_cash" defaultChecked={vendor.accept_cash} /> Accept cash (on pickup / delivery)
-          </label>
-          <label className="flex items-center gap-2 text-sm text-ink/80">
-            <input type="checkbox" name="accept_interac" defaultChecked={vendor.accept_interac} /> Accept Interac e-transfer
-          </label>
-          <Labeled label="Interac e-transfer details (the email/phone customers send to)">
-            <textarea name="offline_instructions" defaultValue={vendor.offline_instructions ?? ""} placeholder="e.g. Send Interac e-transfer to payments@mykitchen.com" className="inp" />
-          </Labeled>
-
-          <SubmitButton className="rounded-lg bg-spice px-5 py-2.5 font-semibold text-ink" pendingLabel="Saving…">Save</SubmitButton>
-        </form>
+        <SettingsForm vendor={vendor} />
       </div>
       <style>{`.inp{width:100%;border:1px solid rgba(42,24,16,.15);border-radius:.5rem;padding:.5rem .75rem}`}</style>
     </main>
-  );
-}
-
-function Labeled({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <span className="text-sm font-medium text-ink/70">{label}</span>
-      <div className="mt-1">{children}</div>
-    </label>
   );
 }

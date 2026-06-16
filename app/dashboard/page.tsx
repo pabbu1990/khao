@@ -67,7 +67,7 @@ export default async function Dashboard() {
       <div className="mx-auto max-w-4xl px-4 py-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="font-display text-3xl font-bold text-ink">{vendor.name}</h1>
+            <h1 className="font-display text-3xl font-bold uppercase text-ink">{vendor.name}</h1>
             <div className="mt-1"><LiveStamp at={Date.now()} /></div>
           </div>
           <form action={toggleAcceptingOrders.bind(null, !vendor.accepting_orders)}>

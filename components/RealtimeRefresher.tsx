@@ -4,30 +4,33 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
+type LatestOrder = { id: string; customer_name: string | null; subtotal_cad: number | null };
 type Toast = { id: string; name: string; total: number };
 
-// Subscribes to this vendor's orders: refreshes the server component on any change,
-// and fires a subtle chime + highlight toast when a NEW order lands.
+// Notifies the vendor of new orders across every dashboard tab.
+// Uses realtime for instant delivery AND a 10s poll as a guaranteed fallback,
+// so the alert fires even if Supabase realtime isn't delivering events.
 export default function RealtimeRefresher({ vendorId }: { vendorId: string }) {
   const router = useRouter();
   const [toast, setToast] = useState<Toast | null>(null);
   const [muted, setMuted] = useState(false);
   const audioRef = useRef<AudioContext | null>(null);
   const dismissRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const seenId = useRef<string | null>(null);   // id of the newest order we already know about
+  const ready = useRef(false);                   // baseline established (don't alert for pre-existing orders)
 
-  // Restore mute preference.
   useEffect(() => {
     setMuted(typeof window !== "undefined" && localStorage.getItem("khao_sound_muted") === "1");
   }, []);
 
-  // Unlock audio on the first user interaction (browser autoplay policy).
+  // Unlock audio on first interaction (browser autoplay policy).
   useEffect(() => {
     const unlock = () => {
       if (!audioRef.current) {
         try {
           const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
           audioRef.current = new Ctx();
-        } catch { /* no audio available */ }
+        } catch { /* no audio */ }
       }
       audioRef.current?.resume().catch(() => {});
     };
@@ -40,14 +43,11 @@ export default function RealtimeRefresher({ vendorId }: { vendorId: string }) {
   }, []);
 
   const chime = useCallback(() => {
+    if (typeof window !== "undefined" && localStorage.getItem("khao_sound_muted") === "1") return;
     const ctx = audioRef.current;
     if (!ctx) return;
     const now = ctx.currentTime;
-    // Two gentle ascending notes (A5 -> E6) with a soft bell-like decay.
-    [
-      { f: 880, t: 0 },
-      { f: 1318.5, t: 0.16 },
-    ].forEach(({ f, t }) => {
+    [{ f: 880, t: 0 }, { f: 1318.5, t: 0.16 }].forEach(({ f, t }) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = "sine";
@@ -65,49 +65,60 @@ export default function RealtimeRefresher({ vendorId }: { vendorId: string }) {
     if (typeof document === "undefined" || !document.hidden) return;
     const original = document.title;
     let on = true;
-    const iv = setInterval(() => {
-      document.title = on ? `🔔 New order — ${name}` : original;
-      on = !on;
-    }, 1000);
-    const stop = () => {
-      clearInterval(iv);
-      document.title = original;
-      document.removeEventListener("visibilitychange", stop);
-    };
+    const iv = setInterval(() => { document.title = on ? `🔔 New order — ${name}` : original; on = !on; }, 1000);
+    const stop = () => { clearInterval(iv); document.title = original; document.removeEventListener("visibilitychange", stop); };
     document.addEventListener("visibilitychange", stop);
     setTimeout(stop, 20000);
   }, []);
 
+  const announce = useCallback((row: LatestOrder) => {
+    if (seenId.current === row.id) return;        // already handled
+    seenId.current = row.id;
+    if (!ready.current) { ready.current = true; return; }  // first sighting = baseline, no alert
+    const t: Toast = { id: row.id, name: row.customer_name || "New customer", total: Number(row.subtotal_cad || 0) };
+    setToast(t);
+    chime();
+    flashTitle(t.name);
+    if (dismissRef.current) clearTimeout(dismissRef.current);
+    dismissRef.current = setTimeout(() => setToast(null), 8000);
+    router.refresh();
+  }, [chime, flashTitle, router]);
+
   useEffect(() => {
     const supabase = createClient();
+
+    // Poll for the newest order — guaranteed fallback that doesn't rely on realtime.
+    async function poll() {
+      const { data } = await supabase
+        .from("orders")
+        .select("id,customer_name,subtotal_cad")
+        .eq("vendor_id", vendorId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!data) { ready.current = true; return; }   // no orders yet — baseline established
+      announce(data as LatestOrder);
+    }
+    poll();                                          // establish baseline immediately
+    const interval = setInterval(poll, 10000);
+
+    // Realtime for instant delivery (when it's available).
     const channel = supabase
       .channel(`orders-${vendorId}`)
-      .on(
-        "postgres_changes",
+      .on("postgres_changes",
         { event: "INSERT", schema: "public", table: "orders", filter: `vendor_id=eq.${vendorId}` },
-        (payload) => {
-          const row = payload.new as { id: string; customer_name?: string; subtotal_cad?: number };
-          const t: Toast = { id: row.id, name: row.customer_name || "New customer", total: Number(row.subtotal_cad || 0) };
-          setToast(t);
-          if (!(typeof window !== "undefined" && localStorage.getItem("khao_sound_muted") === "1")) chime();
-          flashTitle(t.name);
-          if (dismissRef.current) clearTimeout(dismissRef.current);
-          dismissRef.current = setTimeout(() => setToast(null), 8000);
-          router.refresh();
-        }
-      )
-      .on(
-        "postgres_changes",
+        (payload) => announce(payload.new as LatestOrder))
+      .on("postgres_changes",
         { event: "UPDATE", schema: "public", table: "orders", filter: `vendor_id=eq.${vendorId}` },
-        () => router.refresh()
-      )
+        () => router.refresh())
       .subscribe();
 
     return () => {
+      clearInterval(interval);
       supabase.removeChannel(channel);
       if (dismissRef.current) clearTimeout(dismissRef.current);
     };
-  }, [vendorId, router, chime, flashTitle]);
+  }, [vendorId, router, announce]);
 
   function toggleMute() {
     setMuted((m) => {
@@ -119,7 +130,6 @@ export default function RealtimeRefresher({ vendorId }: { vendorId: string }) {
 
   return (
     <>
-      {/* Sound toggle — always available, top-right of the dashboard area */}
       <button
         onClick={toggleMute}
         title={muted ? "New-order sound is off" : "New-order sound is on"}
@@ -138,18 +148,14 @@ export default function RealtimeRefresher({ vendorId }: { vendorId: string }) {
           <span>
             <span className="block font-display text-base font-bold text-ink">New order</span>
             <span className="block text-sm text-ink/60">
-              {toast.name}
-              {toast.total > 0 && <> · ${toast.total.toFixed(2)}</>}
+              {toast.name}{toast.total > 0 && <> · ${toast.total.toFixed(2)}</>}
             </span>
           </span>
         </button>
       )}
 
       <style>{`
-        @keyframes khaoToastIn {
-          0% { opacity: 0; transform: translateY(12px) scale(.96); }
-          100% { opacity: 1; transform: translateY(0) scale(1); }
-        }
+        @keyframes khaoToastIn { 0% { opacity:0; transform:translateY(12px) scale(.96); } 100% { opacity:1; transform:translateY(0) scale(1); } }
         .khao-toast-in { animation: khaoToastIn .28s cubic-bezier(.16,1,.3,1) both; }
         @media (prefers-reduced-motion: reduce) { .khao-toast-in { animation: none; } }
       `}</style>

@@ -67,14 +67,15 @@ export async function createVendor(formData: FormData): Promise<{ ok: boolean; e
   return { ok: true };
 }
 
-export async function updateVendorSettings(formData: FormData) {
+export async function updateVendorSettings(formData: FormData): Promise<{ ok: boolean; error?: string; note?: string }> {
   const { supabase, vendor } = await getMyVendor();
-  if (!vendor) return;
+  if (!vendor) return { ok: false, error: "No kitchen found." };
 
   let acceptCash = formData.get("accept_cash") === "on";
   const acceptInterac = formData.get("accept_interac") === "on";
   // Never let a kitchen turn off every payment method — fall back to cash.
-  if (!acceptCash && !acceptInterac) acceptCash = true;
+  let paymentNote: string | undefined;
+  if (!acceptCash && !acceptInterac) { acceptCash = true; paymentNote = "You need at least one payment method, so we kept Cash on."; }
 
   // Link name (slug) — keep unique; ignore the change if it's taken.
   const desiredSlug = slugify(String(formData.get("slug") || vendor.slug)) || vendor.slug;
@@ -85,7 +86,7 @@ export async function updateVendorSettings(formData: FormData) {
     if (!taken) slug = desiredSlug;
   }
 
-  await supabase
+  const { error } = await supabase
     .from("vendors")
     .update({
       name: String(formData.get("name") || vendor.name),
@@ -98,7 +99,9 @@ export async function updateVendorSettings(formData: FormData) {
       offline_instructions: String(formData.get("offline_instructions") || ""),
     })
     .eq("id", vendor.id);
+  if (error) return { ok: false, error: error.message };
   revalidatePath("/dashboard/settings");
+  return { ok: true, note: paymentNote };
 }
 
 // ---------- services (meal-time menus) ----------

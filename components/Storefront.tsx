@@ -120,9 +120,9 @@ export default function Storefront({ vendor, groups }: { vendor: Vendor; groups:
             <img src={vendor.logo_url} alt="" className="mb-4 h-16 w-16 rounded-2xl object-cover ring-1 ring-white/15" />
           )}
           <span className="text-[11px] font-semibold uppercase tracking-[0.28em] text-spice">Menu</span>
-          <h1 className="mt-1.5 font-display text-[2.6rem] font-semibold leading-[1.05]">{vendor.name}</h1>
+          <h1 className="mt-1.5 font-display text-[2.6rem] font-semibold uppercase leading-[1.05]">{vendor.name}</h1>
           <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-cream/70">
-            {vendor.area && <span>{vendor.area}</span>}
+            {vendor.area && <span className="uppercase">{vendor.area}</span>}
             {vendor.area && vendor.hours && <span className="text-cream/30">•</span>}
             {vendor.hours && <span className="text-spice/90">{vendor.hours}</span>}
           </div>
