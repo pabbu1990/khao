@@ -64,7 +64,7 @@ export default async function MenuPage() {
   }
 
   const row = (d: Dish) => (
-    <MenuDishRow key={d.id} d={d} services={serviceOpts} today={todayCount.get(d.id) || 0} open={openCount.get(d.id) || 0} />
+    <MenuDishRow key={d.id} d={d} services={serviceOpts} today={todayCount.get(d.id) || 0} open={openCount.get(d.id) || 0} vendorLogo={vendor.logo_url} />
   );
 
   return (
