@@ -50,7 +50,7 @@ export default function LoginPage() {
     setResetMsg(null);
     if (!email) { setErr("Enter your email above first, then tap reset."); return; }
     const supabase = createClient();
-    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/auth/callback?next=/reset` });
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset` });
     if (error) setErr(error.message);
     else setResetMsg("Check your email for a password reset link.");
   }

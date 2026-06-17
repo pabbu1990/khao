@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Dish, Vendor, Fulfilment } from "@/lib/types";
 import { money, formatServiceDates } from "@/lib/format";
 import { placeOrder } from "@/app/actions";
-import RealtimeRefresh from "@/components/RealtimeRefresh";
+import MenuRefresher from "@/components/MenuRefresher";
 import Logo from "@/components/Logo";
 
 const COUNTRY_CODES: { name: string; code: string }[] = [
@@ -109,7 +109,7 @@ export default function Storefront({ vendor, groups }: { vendor: Vendor; groups:
 
   return (
     <main className="min-h-screen bg-cream pb-32">
-      <RealtimeRefresh vendorId={vendor.id} tables={["dishes", "services"]} pollMs={20000} />
+      <MenuRefresher vendorId={vendor.id} intervalMs={15000} />
 
       <header className="relative overflow-hidden rounded-b-[2rem] bg-ink px-6 pt-12 pb-9 text-cream shadow-pop">
         <div className="pointer-events-none absolute -right-12 -top-20 h-56 w-56 rounded-full bg-spice/25 blur-3xl" />

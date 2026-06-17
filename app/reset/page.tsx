@@ -15,9 +15,29 @@ export default function Reset() {
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getSession().then(({ data }) => {
+    const search = new URLSearchParams(window.location.search);
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+
+    // Failed/expired link: Supabase (or our confirm route) signals it via an
+    // error in the query string or URL hash. Show the expired message.
+    if (search.get("error") || hash.get("error") || hash.get("error_code")) {
+      setReady("invalid");
+      return;
+    }
+
+    // Default-template flow: the link lands here with a one-time ?code= that we
+    // exchange for a recovery session. (token_hash flow already set the session
+    // in /auth/confirm, so there's no code and getSession finds it.)
+    const code = search.get("code");
+    (async () => {
+      if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        setReady(error ? "invalid" : "ok");
+        return;
+      }
+      const { data } = await supabase.auth.getSession();
       setReady(data.session ? "ok" : "invalid");
-    });
+    })();
   }, []);
 
   async function submit(e: React.FormEvent) {
