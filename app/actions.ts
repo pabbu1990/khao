@@ -70,6 +70,90 @@ async function sendVendorWelcome(v: { email: string; name: string; slug: string 
   const key = process.env.RESEND_API_KEY;
   if (!key || !v.email) return;
   const link = `https://thekhao.com/${v.slug}`;
+  const dash = "https://thekhao.com/dashboard";
+
+  const text = [
+    `Welcome to Khao!`,
+    ``,
+    `Your kitchen "${v.name}" is now set up. Here's how to start taking orders:`,
+    `1. Add your dishes (with prices and photos), grouped by service`,
+    `2. Share your link with customers on WhatsApp`,
+    `3. Watch orders land live on your dashboard`,
+    ``,
+    `Your ordering page: ${link}`,
+    `Your dashboard: ${dash}`,
+    ``,
+    `Khao never takes a commission — every order is yours.`,
+    `Questions? Just reply to this email.`,
+    ``,
+    `— The Khao team`,
+  ].join("\n");
+
+  const btn = (href: string, label: string, bg: string, color: string) =>
+    `<a href="${href}" style="display:inline-block;background:${bg};color:${color};text-decoration:none;font-weight:700;font-size:15px;padding:13px 26px;border-radius:12px;">${label}</a>`;
+
+  const step = (n: string, t: string, d: string) =>
+    `<tr>
+      <td valign="top" style="width:34px;padding:6px 0;">
+        <div style="width:26px;height:26px;border-radius:50%;background:#FBEFDD;color:#B06D1A;font-weight:700;font-size:13px;line-height:26px;text-align:center;">${n}</div>
+      </td>
+      <td valign="top" style="padding:6px 0;">
+        <div style="font-weight:700;color:#2A1810;font-size:15px;">${t}</div>
+        <div style="color:#6f6457;font-size:14px;line-height:1.5;">${d}</div>
+      </td>
+    </tr>`;
+
+  const html = `<!doctype html><html><body style="margin:0;padding:0;background:#FBF6EE;">
+  <div style="display:none;max-height:0;overflow:hidden;">Your kitchen is live on Khao — here's how to start taking orders.</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#FBF6EE;padding:28px 14px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+    <tr><td align="center">
+      <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#ffffff;border:1px solid #EADFCD;border-radius:18px;overflow:hidden;">
+        <tr><td style="padding:26px 32px 0 32px;">
+          <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+            <td style="padding-right:10px;"><img src="https://thekhao.com/khao-email-logo.png" width="40" height="40" alt="Khao" style="display:block;border-radius:10px;"></td>
+            <td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:24px;font-weight:800;color:#E0922F;letter-spacing:-0.5px;">Khao</td>
+          </tr></table>
+        </td></tr>
+        <tr><td style="padding:22px 32px 0 32px;">
+          <h1 style="margin:0;font-size:26px;line-height:1.25;color:#2A1810;font-weight:800;">Welcome to Khao 🎉</h1>
+          <p style="margin:10px 0 0 0;font-size:16px;line-height:1.6;color:#6f6457;">
+            Your kitchen <strong style="color:#2A1810;">${v.name}</strong> is set up and ready. You're moments away from taking your first order — here's all that's left:
+          </p>
+        </td></tr>
+        <tr><td style="padding:18px 32px 0 32px;">
+          <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+            ${step("1", "Add your dishes", "Add what you're cooking — prices, photos, grouped by service.")}
+            ${step("2", "Share your link", "Drop it in your WhatsApp groups, status, or chats.")}
+            ${step("3", "Orders land live", "Every order appears instantly on your dashboard.")}
+          </table>
+        </td></tr>
+        <tr><td style="padding:22px 32px 0 32px;">
+          <div style="background:#F4EBDD;border-radius:12px;padding:14px 16px;">
+            <div style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#9b8e7d;font-weight:700;">Your ordering page</div>
+            <div style="font-size:15px;color:#2A1810;font-weight:700;margin-top:3px;word-break:break-all;">${link}</div>
+          </div>
+        </td></tr>
+        <tr><td style="padding:20px 32px 4px 32px;">
+          ${btn(dash, "Open my dashboard", "#E0922F", "#2A1810")}
+          &nbsp;
+          ${btn(link, "View my page", "#ffffff", "#2A1810")}
+        </td></tr>
+        <tr><td style="padding:18px 32px 0 32px;">
+          <p style="margin:0;font-size:14px;line-height:1.6;color:#6f6457;">
+            And the best part — <strong style="color:#3E7A4E;">Khao never takes a commission.</strong> Every order is yours, and you handle payment and delivery your way.
+          </p>
+        </td></tr>
+        <tr><td style="padding:18px 32px 26px 32px;border-top:1px solid #EADFCD;margin-top:8px;">
+          <p style="margin:14px 0 0 0;font-size:13px;line-height:1.6;color:#9b8e7d;">
+            Questions or need a hand getting set up? Just reply to this email — a real person will help.
+          </p>
+          <p style="margin:10px 0 0 0;font-size:13px;color:#9b8e7d;">— The Khao team</p>
+        </td></tr>
+      </table>
+      <p style="margin:16px 0 0 0;font-size:12px;color:#b3a692;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">Khao · Online ordering for home kitchens · thekhao.com</p>
+    </td></tr>
+  </table></body></html>`;
+
   try {
     await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -78,25 +162,9 @@ async function sendVendorWelcome(v: { email: string; name: string; slug: string 
         from: process.env.WELCOME_FROM || "Khao <hello@thekhao.com>",
         to: [v.email],
         reply_to: process.env.ADMIN_NOTIFY_EMAIL || "kiranpabbu.90@gmail.com",
-        subject: `${v.name} is live on Khao`,
-        text: [
-          `Hi,`,
-          ``,
-          `Your kitchen "${v.name}" is now set up on Khao. Here's how to start taking orders:`,
-          ``,
-          `1. Create a service (e.g. Weekday Lunch or Weekend Specials)`,
-          `2. Add your dishes, with prices and photos`,
-          `3. Share your ordering link with customers on WhatsApp`,
-          ``,
-          `Your ordering page: ${link}`,
-          `Your dashboard:    https://thekhao.com/dashboard`,
-          ``,
-          `Every order your customers place lands live on your dashboard.`,
-          ``,
-          `Questions? Just reply to this email.`,
-          ``,
-          `— The Khao team`,
-        ].join("\n"),
+        subject: `Welcome to Khao — ${v.name} is live`,
+        text,
+        html,
       }),
     });
   } catch { /* ignore — welcome email is non-critical */ }

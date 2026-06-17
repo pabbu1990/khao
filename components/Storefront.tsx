@@ -151,7 +151,7 @@ export default function Storefront({ vendor, groups }: { vendor: Vendor; groups:
             {groups.map((g) => (
               <div key={g.service.id}>
                 <div className="flex items-center gap-3">
-                  <h2 className="font-display text-2xl font-semibold text-ink">{g.service.name}</h2>
+                  <h2 className="font-display text-2xl font-semibold uppercase text-ink">{g.service.name}</h2>
                   {g.service.dates.length > 0 && <span className="rounded-full bg-panel px-2.5 py-0.5 text-xs font-semibold text-ink/60">{formatServiceDates(g.service.dates)}</span>}
                   <span className="h-px flex-1 bg-line" />
                 </div>
@@ -173,7 +173,7 @@ export default function Storefront({ vendor, groups }: { vendor: Vendor; groups:
                             <rect x="1.5" y="1.5" width="13" height="13" rx="2.5" fill="none" stroke={d.veg ? "#3E7A4E" : "#C0392B"} strokeWidth="1.8" />
                             <circle cx="8" cy="8" r="3" fill={d.veg ? "#3E7A4E" : "#C0392B"} />
                           </svg>
-                          <h3 className="truncate font-semibold text-ink">{d.name}</h3>
+                          <h3 className="truncate font-semibold uppercase text-ink">{d.name}</h3>
                         </div>
                         {d.description && <p className="mt-0.5 line-clamp-2 text-sm text-ink/55">{d.description}</p>}
                         <p className="mt-1.5 font-semibold text-ink">{money(Number(d.price_cad))}</p>
