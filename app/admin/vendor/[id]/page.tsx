@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { setVendorStatus } from "@/app/actions";
+import PendingButton from "@/components/PendingButton";
 import PollRefresh from "@/components/PollRefresh";
 import LiveStamp from "@/components/LiveStamp";
 import { money, ORDER_STATUS_LABEL } from "@/lib/format";
@@ -44,9 +45,9 @@ export default async function AdminVendor({ params }: { params: { id: string } }
             {v.area && <p className="text-ink/50 text-sm">{v.area}</p>}
           </div>
           <form action={setVendorStatus.bind(null, v.id, v.status === "active" ? "suspended" : "active")}>
-            <button className={`rounded-lg px-4 py-2 text-sm font-semibold ${v.status === "active" ? "bg-chili text-white" : "bg-curry text-white"}`}>
+            <PendingButton pendingLabel="Saving…" className={`rounded-lg px-4 py-2 text-sm font-semibold ${v.status === "active" ? "bg-chili text-white" : "bg-curry text-white"}`}>
               {v.status === "active" ? "Suspend kitchen" : "Reactivate kitchen"}
-            </button>
+            </PendingButton>
           </form>
         </div>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Spinner from "@/components/Spinner";
 import { sendContactMessage } from "@/app/actions";
 
 export default function ContactForm() {
@@ -40,7 +41,7 @@ export default function ContactForm() {
       <input className={input} placeholder="Phone (optional)" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
       <textarea className={input} required rows={4} placeholder="How can we help?" value={form.reason} onChange={(e) => setForm({ ...form, reason: e.target.value })} />
       <button disabled={status === "sending"} className="w-full rounded-xl bg-spice px-4 py-3 font-semibold text-ink shadow-sm transition hover:brightness-[1.04] active:scale-[.99] disabled:opacity-60">
-        {status === "sending" ? "Sending…" : "Send message"}
+        {status === "sending" ? <span className="inline-flex items-center gap-2"><Spinner />Sending…</span> : "Send message"}
       </button>
       {err && <p className="text-sm text-chili">{err}</p>}
     </form>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import PendingButton from "@/components/PendingButton";
 import { useRouter } from "next/navigation";
 import { updateService, toggleServiceActive, deleteService } from "@/app/actions";
 import { formatServiceDates } from "@/lib/format";
@@ -50,10 +51,10 @@ export default function ServiceRow({ s }: { s: Service }) {
       </div>
       <button onClick={() => setEditing(true)} className="rounded-lg border border-ink/20 px-3 py-1.5 text-sm font-semibold text-ink/70 transition hover:bg-ink/5">Edit</button>
       <form action={toggleServiceActive.bind(null, s.id, !s.is_active)}>
-        <button className="rounded-lg border border-ink/20 bg-white px-3 py-1.5 text-sm font-semibold text-ink/70 transition hover:bg-ink/5">{s.is_active ? "Turn off" : "Turn on"}</button>
+        <PendingButton className="rounded-lg border border-ink/20 bg-white px-3 py-1.5 text-sm font-semibold text-ink/70 transition hover:bg-ink/5">{s.is_active ? "Turn off" : "Turn on"}</PendingButton>
       </form>
       <form action={deleteService.bind(null, s.id)}>
-        <button className="rounded-lg border border-chili/25 px-3 py-1.5 text-sm font-semibold text-chili transition hover:bg-chili/10">Delete</button>
+        <PendingButton className="rounded-lg border border-chili/25 px-3 py-1.5 text-sm font-semibold text-chili transition hover:bg-chili/10">Delete</PendingButton>
       </form>
     </div>
   );

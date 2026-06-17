@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Spinner from "@/components/Spinner";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -72,7 +73,7 @@ export default function Reset() {
               <input type="password" required minLength={6} placeholder="New password" value={password} onChange={(e) => setPassword(e.target.value)}
                 className="w-full rounded-xl border border-white/10 bg-white/95 px-4 py-3 text-ink placeholder:text-ink/30 outline-none transition focus:ring-4 focus:ring-spice/25" />
               <button disabled={loading || ready === "checking"} className="w-full rounded-xl bg-spice px-4 py-3 font-semibold text-ink shadow-sm transition hover:brightness-[1.04] active:scale-[.99] disabled:opacity-60">
-                {loading ? "Saving…" : "Update password"}
+                {loading ? <span className="inline-flex items-center gap-2"><Spinner />Saving…</span> : "Update password"}
               </button>
             </form>
             {err && <p className="mt-4 text-sm text-chili">{err}</p>}

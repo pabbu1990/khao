@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Spinner from "@/components/Spinner";
 import { useRouter } from "next/navigation";
 import { updateVendorSettings } from "@/app/actions";
 import type { Vendor } from "@/lib/types";
@@ -72,7 +73,7 @@ export default function SettingsForm({ vendor }: { vendor: Vendor }) {
 
       <div className="flex flex-wrap items-center gap-3 pt-1">
         <button disabled={busy} className="rounded-lg bg-spice px-5 py-2.5 font-semibold text-ink transition hover:brightness-[1.04] disabled:opacity-60">
-          {busy ? "Saving…" : "Save"}
+          {busy ? <span className="inline-flex items-center gap-2"><Spinner />Saving…</span> : "Save"}
         </button>
         {msg && <span className={`text-sm font-medium ${msg.ok ? "text-curry" : "text-chili"}`}>{msg.text}</span>}
       </div>

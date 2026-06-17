@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Logo from "@/components/Logo";
+import Spinner from "@/components/Spinner";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -13,6 +14,8 @@ export default function LoginPage() {
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [resetMsg, setResetMsg] = useState<string | null>(null);
+  const [gLoading, setGLoading] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
 
   useEffect(() => {
     if (new URLSearchParams(window.location.search).get("mode") === "signup") setMode("signup");
@@ -35,12 +38,14 @@ export default function LoginPage() {
 
   async function google() {
     setErr(null);
+    setGLoading(true);
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${window.location.origin}/auth/callback?next=/post-login` },
     });
-    if (error) setErr(error.message);
+    if (error) { setErr(error.message); setGLoading(false); }
+    // on success the browser redirects to Google, so we leave the button busy
   }
 
   const inputCls = "w-full rounded-xl border border-white/10 bg-white/95 px-4 py-3 text-ink placeholder:text-ink/30 outline-none transition focus:ring-4 focus:ring-spice/25";
@@ -49,8 +54,10 @@ export default function LoginPage() {
     setErr(null);
     setResetMsg(null);
     if (!email) { setErr("Enter your email above first, then tap reset."); return; }
+    setResetLoading(true);
     const supabase = createClient();
     const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset` });
+    setResetLoading(false);
     if (error) setErr(error.message);
     else setResetMsg("Check your email for a password reset link.");
   }
@@ -72,14 +79,14 @@ export default function LoginPage() {
         <form onSubmit={submit} className="mt-7 space-y-3">
           <input type="email" required placeholder="you@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className={inputCls} />
           <input type="password" required minLength={6} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className={inputCls} />
-          <button disabled={loading} className="w-full rounded-xl bg-spice px-4 py-3 font-semibold text-ink shadow-sm transition hover:brightness-[1.04] active:scale-[.99] disabled:opacity-60">
-            {loading ? "Please wait…" : mode === "signup" ? "Create account" : "Sign in"}
+          <button disabled={loading} className="flex w-full items-center justify-center gap-2 rounded-xl bg-spice px-4 py-3 font-semibold text-ink shadow-sm transition hover:brightness-[1.04] active:scale-[.99] disabled:opacity-60">
+            {loading ? <><Spinner />Please wait…</> : mode === "signup" ? "Create account" : "Sign in"}
           </button>
         </form>
 
         {mode === "signin" && (
-          <button onClick={forgotPassword} className="mt-3 text-sm text-cream/55 transition hover:text-cream">
-            Forgot password?
+          <button onClick={forgotPassword} disabled={resetLoading} className="mt-3 inline-flex items-center gap-1.5 text-sm text-cream/55 transition hover:text-cream disabled:opacity-60">
+            {resetLoading && <Spinner className="h-3.5 w-3.5" />}{resetLoading ? "Sending reset link…" : "Forgot password?"}
           </button>
         )}
         {resetMsg && <p className="mt-3 text-sm text-curry">{resetMsg}</p>}
@@ -88,9 +95,8 @@ export default function LoginPage() {
           <span className="h-px flex-1 bg-white/10" /> or <span className="h-px flex-1 bg-white/10" />
         </div>
 
-        <button onClick={google} className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-white/15 px-4 py-3 font-semibold text-cream transition hover:bg-white/5">
-          <span className="grid h-5 w-5 place-items-center rounded-full bg-white text-xs font-bold text-ink">G</span>
-          Continue with Google
+        <button onClick={google} disabled={gLoading} className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-white/15 px-4 py-3 font-semibold text-cream transition hover:bg-white/5 disabled:opacity-60">
+          {gLoading ? <><Spinner />Redirecting…</> : <><span className="grid h-5 w-5 place-items-center rounded-full bg-white text-xs font-bold text-ink">G</span>Continue with Google</>}
         </button>
 
         <button onClick={() => { setMode(mode === "signup" ? "signin" : "signup"); setErr(null); }} className="mt-5 text-sm text-cream/60 transition hover:text-cream">

@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import DashboardNav from "@/components/DashboardNav";
+import PendingButton from "@/components/PendingButton";
 import RealtimeRefresh from "@/components/RealtimeRefresh";
 import LiveStamp from "@/components/LiveStamp";
 import { setPaymentStatus } from "@/app/actions";
@@ -128,9 +129,9 @@ export default async function ReportPage({ searchParams }: { searchParams: { ran
                         {o.payment_status === "paid" ? "Paid" : "Unpaid"}
                       </span>
                       <form action={setPaymentStatus.bind(null, o.id, o.payment_status === "paid" ? "unpaid" : "paid")}>
-                        <button className="rounded-md border border-line px-2.5 py-1 text-xs font-semibold text-ink/70 transition hover:bg-panel">
+                        <PendingButton className="rounded-md border border-line px-2.5 py-1 text-xs font-semibold text-ink/70 transition hover:bg-panel">
                           {o.payment_status === "paid" ? "Mark unpaid" : "Mark paid"}
-                        </button>
+                        </PendingButton>
                       </form>
                     </div>
                   </td>

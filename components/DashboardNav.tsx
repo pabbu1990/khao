@@ -1,4 +1,5 @@
 import Link from "next/link";
+import PendingButton from "@/components/PendingButton";
 import { signOut } from "@/app/actions";
 import Logo from "@/components/Logo";
 
@@ -23,8 +24,8 @@ export default function DashboardNav({ active }: { active: "orders" | "items" | 
           {tab("settings", "/dashboard/settings", "Settings")}
         </div>
         <form action={signOut}>
-          <button className="rounded-lg px-3 py-1.5 text-sm text-cream/55 transition hover:text-cream">Sign out</button>
-        </form>
+        <PendingButton className="rounded-lg px-3 py-1.5 text-sm text-cream/55 transition hover:text-cream" pendingLabel="…">Sign out</PendingButton>
+      </form>
       </div>
     </header>
   );

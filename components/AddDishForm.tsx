@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Spinner from "@/components/Spinner";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { addDish } from "@/app/actions";
@@ -105,7 +106,7 @@ export default function AddDishForm({ vendorId, services }: { vendorId: string; 
         <input type="checkbox" checked={veg} onChange={(e) => setVeg(e.target.checked)} /> Vegetarian
       </label>
       <button disabled={busy} className="rounded-lg bg-spice px-4 py-2 font-semibold text-ink disabled:opacity-60 sm:col-start-2">
-        {busy ? "Saving…" : "Add dish"}
+        {busy ? <span className="inline-flex items-center gap-2"><Spinner />Saving…</span> : "Add dish"}
       </button>
 
       {err && <p className="text-chili text-sm sm:col-span-2">{err}</p>}

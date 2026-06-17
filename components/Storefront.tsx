@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Spinner from "@/components/Spinner";
 import { useRouter } from "next/navigation";
 import type { Dish, Vendor, Fulfilment } from "@/lib/types";
 import { money, formatServiceDates } from "@/lib/format";
@@ -269,7 +270,7 @@ export default function Storefront({ vendor, groups }: { vendor: Vendor; groups:
             <div className="flex gap-2 pt-1">
               <button type="button" onClick={() => setCheckout(false)} className="rounded-xl border border-line px-5 py-3 font-semibold text-ink/60 transition hover:border-ink/20">Back</button>
               <button disabled={submitting} className="flex-1 rounded-xl bg-spice px-4 py-3 font-semibold text-ink shadow-sm transition hover:brightness-[1.04] active:scale-[.99] disabled:opacity-60">
-                {submitting ? "Placing…" : `Place order · ${money(subtotal)}`}
+                {submitting ? <span className="inline-flex items-center gap-2"><Spinner />Placing…</span> : `Place order · ${money(subtotal)}`}
               </button>
             </div>
           </form>

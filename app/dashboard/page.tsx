@@ -4,6 +4,7 @@ import Link from "next/link";
 import DashboardNav from "@/components/DashboardNav";
 import ShareLinkPanel from "@/components/ShareLinkPanel";
 import SubmitButton from "@/components/SubmitButton";
+import PendingButton from "@/components/PendingButton";
 import LiveStamp from "@/components/LiveStamp";
 import RecentOrderRow from "@/components/RecentOrderRow";
 import { updateOrderStatus, toggleAcceptingOrders } from "@/app/actions";
@@ -71,7 +72,8 @@ export default async function Dashboard() {
             <div className="mt-1"><LiveStamp at={Date.now()} /></div>
           </div>
           <form action={toggleAcceptingOrders.bind(null, !vendor.accepting_orders)}>
-            <button
+            <PendingButton
+              swap={false}
               type="submit"
               role="switch"
               aria-checked={vendor.accepting_orders}
@@ -88,7 +90,7 @@ export default async function Dashboard() {
               <span className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${vendor.accepting_orders ? "bg-curry" : "bg-ink/25"}`}>
                 <span className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-all ${vendor.accepting_orders ? "left-[1.375rem]" : "left-0.5"}`} />
               </span>
-            </button>
+            </PendingButton>
           </form>
         </div>
 

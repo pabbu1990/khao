@@ -45,7 +45,7 @@ export default function LogoUpload({ vendorId, current }: { vendorId: string; cu
           {busy ? "Uploading…" : url ? "Replace" : "Upload logo"}
           <input type="file" accept="image/*" onChange={pick} className="hidden" />
         </label>
-        {url && <button onClick={remove} className="text-sm font-semibold text-chili">Remove</button>}
+        {url && <button onClick={remove} disabled={busy} className="text-sm font-semibold text-chili disabled:opacity-60">{busy ? "Removing…" : "Remove"}</button>}
       </div>
       {err && <p className="text-sm text-chili">{err}</p>}
     </div>

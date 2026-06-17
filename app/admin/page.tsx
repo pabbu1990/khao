@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import PendingButton from "@/components/PendingButton";
 import Link from "next/link";
 import { signOut } from "@/app/actions";
 import PollRefresh from "@/components/PollRefresh";
@@ -64,7 +65,7 @@ export default async function AdminPage() {
     <main className="min-h-screen bg-cream">
       <header className="bg-ink text-cream px-5 py-3 flex items-center justify-between">
         <span className="font-display font-bold text-spice">KHAO · Admin</span>
-        <form action={signOut}><button className="text-sm text-cream/60">Sign out</button></form>
+        <form action={signOut}><PendingButton className="text-sm text-cream/60" pendingLabel="Signing out…">Sign out</PendingButton></form>
       </header>
       <PollRefresh tables={["orders", "vendors"]} />
       <div className="px-5 pt-2"><LiveStamp at={Date.now()} /></div>

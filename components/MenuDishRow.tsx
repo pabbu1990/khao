@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import PendingButton from "@/components/PendingButton";
 import { useRouter } from "next/navigation";
 import { updateDish, toggleSoldOut, deleteDish } from "@/app/actions";
 import DishServiceSelect from "@/components/DishServiceSelect";
@@ -54,10 +55,10 @@ export default function MenuDishRow({ d, services, today, open }: { d: Dish; ser
       <button onClick={() => setEditing(true)} className="rounded-lg border border-ink/20 px-3 py-1.5 text-sm font-semibold text-ink/70 transition hover:bg-ink/5">Edit</button>
       {d.is_sold_out && <span className="text-xs font-semibold text-chili">Sold out</span>}
       <form action={toggleSoldOut.bind(null, d.id, !d.is_sold_out)}>
-        <button className="rounded-lg border border-ink/20 bg-white px-3 py-1.5 text-sm font-semibold text-ink/70 transition hover:bg-ink/5">{d.is_sold_out ? "Available" : "Sold out"}</button>
+        <PendingButton className="rounded-lg border border-ink/20 bg-white px-3 py-1.5 text-sm font-semibold text-ink/70 transition hover:bg-ink/5">{d.is_sold_out ? "Available" : "Sold out"}</PendingButton>
       </form>
       <form action={deleteDish.bind(null, d.id)}>
-        <button className="rounded-lg border border-chili/25 px-3 py-1.5 text-sm font-semibold text-chili transition hover:bg-chili/10">Delete</button>
+        <PendingButton className="rounded-lg border border-chili/25 px-3 py-1.5 text-sm font-semibold text-chili transition hover:bg-chili/10">Delete</PendingButton>
       </form>
     </div>
   );

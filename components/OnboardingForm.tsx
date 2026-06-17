@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Spinner from "@/components/Spinner";
 import { useRouter } from "next/navigation";
 import { createVendor } from "@/app/actions";
 import Logo from "@/components/Logo";
@@ -34,7 +35,7 @@ export default function OnboardingForm() {
         <input name="name" required placeholder="Kitchen name (e.g. Spice Divine)" className="w-full rounded-xl border border-white/10 bg-white/95 px-4 py-3 text-ink placeholder:text-ink/30 outline-none transition focus:ring-4 focus:ring-spice/25" />
         <input name="area" placeholder="Area (e.g. Barrhaven)" className="w-full rounded-xl border border-white/10 bg-white/95 px-4 py-3 text-ink placeholder:text-ink/30 outline-none transition focus:ring-4 focus:ring-spice/25" />
         <button disabled={busy} className="w-full rounded-xl bg-spice px-4 py-3 font-semibold text-ink shadow-sm transition hover:brightness-[1.04] active:scale-[.99] disabled:opacity-60">
-          {busy ? "Creating…" : "Create my kitchen"}
+          {busy ? <span className="inline-flex items-center gap-2"><Spinner />Creating…</span> : "Create my kitchen"}
         </button>
         {err && <p className="text-sm text-chili">{err}</p>}
       </form>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Spinner from "@/components/Spinner";
 import { useRouter } from "next/navigation";
 import { addService } from "@/app/actions";
 import MultiDateField from "@/components/MultiDateField";
@@ -40,7 +41,7 @@ export default function AddServiceForm() {
       <MultiDateField />
       <div className="flex flex-wrap items-center gap-3">
         <button disabled={busy} className="rounded-lg bg-spice px-4 py-2 font-semibold text-ink transition hover:brightness-[1.04] disabled:opacity-60">
-          {busy ? "Adding…" : "Add service"}
+          {busy ? <span className="inline-flex items-center gap-2"><Spinner />Adding…</span> : "Add service"}
         </button>
         {msg && <span className={`text-sm font-medium ${msg.ok ? "text-curry" : "text-chili"}`}>{msg.text}</span>}
       </div>
