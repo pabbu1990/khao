@@ -533,6 +533,143 @@ export async function sendContactMessage(input: { name: string; email: string; p
   return { ok: true };
 }
 
+// ---------- admin outreach (cold email to prospect kitchens) ----------
+function esc(x: string) {
+  return x.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function parseRecipients(raw: string): { recipients: { email: string; name?: string }[]; invalid: string[] } {
+  const out: { email: string; name?: string }[] = [];
+  const invalid: string[] = [];
+  for (const lineRaw of raw.split(/\n+/)) {
+    const line = lineRaw.trim();
+    if (!line) continue;
+    const m = line.match(/([^\s<>,]+@[^\s<>,]+\.[^\s<>,]+)/);
+    if (!m) { invalid.push(line); continue; }
+    const email = m[1].toLowerCase();
+    const name = line.replace(m[0], "").replace(/[<>,]/g, " ").trim();
+    out.push({ email, name: name || undefined });
+  }
+  const seen = new Set<string>();
+  const recipients = out.filter((r) => (seen.has(r.email) ? false : (seen.add(r.email), true)));
+  return { recipients, invalid };
+}
+
+function outreachText(name?: string) {
+  const hi = name ? `Hi ${name},` : "Hi there,";
+  return [
+    hi,
+    "",
+    "Still counting WhatsApp messages to keep track of your orders?",
+    "",
+    "Khao gives your kitchen one ordering link to share in your WhatsApp groups. Customers tap, pick, and order — and it all lands in one clean dashboard.",
+    "",
+    "What you get:",
+    "- Your own ordering page — just share one link",
+    "- Every order in one live dashboard, organised for you",
+    "- No commission — you keep 100%, your customers and your payments",
+    "",
+    "See a live example: https://thekhao.com/spice-place",
+    "",
+    "Free for our first kitchens — reply and I'll set yours up in 10 minutes. No commitment.",
+    "",
+    "— The Khao team",
+    "thekhao.com",
+    "",
+    "You received this because you run a food business. Reply \"unsubscribe\" to opt out. Khao, Canada.",
+  ].join("\n");
+}
+
+function outreachHtml(name?: string) {
+  const hi = name ? `Hi ${esc(name)},` : "Hi there,";
+  const check = (t: string) =>
+    `<tr>
+      <td valign="top" style="width:24px;padding:5px 0;"><span style="display:inline-block;width:18px;height:18px;border-radius:50%;background:#E7F0E9;color:#3E7A4E;font-size:12px;line-height:18px;text-align:center;font-weight:700;">&#10003;</span></td>
+      <td style="padding:5px 0 5px 8px;font-size:15px;line-height:1.5;color:#4a4036;">${t}</td>
+    </tr>`;
+  return `<!doctype html><html><body style="margin:0;padding:0;background:#FBF6EE;">
+  <div style="display:none;max-height:0;overflow:hidden;">One ordering link for your kitchen. No commission, ever.</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#FBF6EE;padding:30px 14px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+    <tr><td align="center">
+      <table role="presentation" width="520" cellpadding="0" cellspacing="0" style="max-width:520px;width:100%;background:#ffffff;border:1px solid #EADFCD;border-radius:18px;overflow:hidden;">
+        <tr><td style="height:5px;background:#E0922F;"></td></tr>
+        <tr><td style="padding:24px 32px 0 32px;">
+          <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+            <td style="padding-right:9px;"><img src="https://thekhao.com/khao-email-logo.png" width="36" height="36" alt="Khao" style="display:block;border-radius:9px;"></td>
+            <td>
+              <div style="font-size:21px;font-weight:800;color:#E0922F;letter-spacing:-0.4px;line-height:1;">Khao</div>
+              <div style="font-size:11px;color:#9b8e7d;margin-top:2px;">Online ordering for home &amp; cloud kitchens</div>
+            </td>
+          </tr></table>
+        </td></tr>
+        <tr><td style="padding:22px 32px 0 32px;">
+          <p style="margin:0;font-size:14px;color:#6f6457;">${hi}</p>
+          <p style="margin:8px 0 0 0;font-size:22px;line-height:1.32;font-weight:800;color:#2A1810;">Still counting WhatsApp messages to track your orders?</p>
+          <p style="margin:12px 0 0 0;font-size:16px;line-height:1.6;color:#6f6457;">Khao gives your kitchen <strong style="color:#2A1810;">one ordering link</strong> to share in your WhatsApp groups. Customers tap, pick, and order — and it all lands in one clean dashboard.</p>
+        </td></tr>
+        <tr><td style="padding:16px 32px 0 32px;">
+          <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+            ${check("Your own ordering page — just share one link")}
+            ${check("Every order in one live dashboard, organised for you")}
+            ${check("<strong style=\"color:#2A1810;\">No commission</strong> — you keep 100%, your customers and your payments")}
+          </table>
+        </td></tr>
+        <tr><td style="padding:20px 32px 4px 32px;">
+          <a href="https://thekhao.com/spice-place" style="display:inline-block;background:#E0922F;color:#2A1810;text-decoration:none;font-weight:700;font-size:15px;padding:13px 28px;border-radius:12px;">See a live example &rarr;</a>
+        </td></tr>
+        <tr><td style="padding:16px 32px 20px 32px;">
+          <p style="margin:0;font-size:15px;line-height:1.6;color:#6f6457;"><strong style="color:#2A1810;">Free for our first kitchens.</strong> Reply and I&rsquo;ll set yours up in 10 minutes — no commitment.</p>
+          <p style="margin:14px 0 0 0;font-size:14px;color:#9b8e7d;">&mdash; The Khao team</p>
+        </td></tr>
+        <tr><td style="padding:20px 32px 24px 32px;border-top:1px solid #EADFCD;">
+          <p style="margin:0;font-size:12px;font-weight:600;color:#9b8e7d;">No app for customers &middot; No commission &middot; Keep your own customers</p>
+          <p style="margin:8px 0 0 0;font-size:11px;line-height:1.6;color:#b3a692;">You received this because you run a food business. Not interested? Reply &ldquo;unsubscribe&rdquo;.<br>Khao &middot; Canada &middot; thekhao.com</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table></body></html>`;
+}
+
+export async function sendOutreach(formData: FormData): Promise<{ ok: boolean; sent?: number; failed?: number; invalid?: string[]; error?: string }> {
+  const { supabase, user } = await requireUser();
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+  if (profile?.role !== "admin") return { ok: false, error: "Admins only." };
+
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return { ok: false, error: "Email isn't configured (RESEND_API_KEY missing)." };
+
+  const subject = String(formData.get("subject") || "").trim() || "Quick idea for your kitchen's orders";
+  const mode = String(formData.get("mode") || "send");
+  const from = process.env.OUTREACH_FROM || process.env.WELCOME_FROM || "Khao <hello@thekhao.com>";
+  const replyTo = process.env.ADMIN_NOTIFY_EMAIL || "kiranpabbu.90@gmail.com";
+
+  let targets: { email: string; name?: string }[];
+  let invalid: string[] = [];
+  if (mode === "test") {
+    if (!user.email) return { ok: false, error: "Your account has no email to test with." };
+    targets = [{ email: user.email }];
+  } else {
+    const parsed = parseRecipients(String(formData.get("recipients") || ""));
+    targets = parsed.recipients;
+    invalid = parsed.invalid;
+    if (targets.length === 0) return { ok: false, error: "No valid email addresses found.", invalid };
+  }
+
+  let sent = 0;
+  let failed = 0;
+  for (const t of targets) {
+    try {
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ from, to: [t.email], reply_to: replyTo, subject, html: outreachHtml(t.name), text: outreachText(t.name) }),
+      });
+      if (res.ok) sent++; else failed++;
+    } catch { failed++; }
+  }
+  return { ok: true, sent, failed, invalid };
+}
+
 // ---------- auth ----------
 export async function signOut() {
   const supabase = createClient();

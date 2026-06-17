@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import PendingButton from "@/components/PendingButton";
+import OutreachForm from "@/components/OutreachForm";
 import Link from "next/link";
 import { signOut } from "@/app/actions";
 import PollRefresh from "@/components/PollRefresh";
@@ -32,6 +33,8 @@ export default async function AdminPage() {
 
   const { data: vendors } = await supabase.from("vendors").select("*").order("created_at", { ascending: false });
   const { data: orders } = await supabase.from("orders").select("vendor_id,status,subtotal_cad,created_at");
+  const { data: svcRows } = await supabase.from("services").select("vendor_id");
+  const { data: dishRows } = await supabase.from("dishes").select("vendor_id");
 
   const list = (vendors ?? []) as Vendor[];
   const allOrders = orders ?? [];
@@ -61,6 +64,50 @@ export default async function AdminPage() {
     }
   }
 
+  // ----- analytics (phase 1) -----
+  const now = Date.now();
+  const WK = 604800000;
+  const vWithMenu = new Set((svcRows ?? []).map((r) => r.vendor_id as string));
+  const vWithDishes = new Set((dishRows ?? []).map((r) => r.vendor_id as string));
+  const vWithOrder = new Set(allOrders.map((o) => o.vendor_id));
+  const total = list.length;
+  const funnel = [
+    { label: "Signed up", n: total },
+    { label: "Created a menu", n: list.filter((v) => vWithMenu.has(v.id)).length },
+    { label: "Added dishes", n: list.filter((v) => vWithDishes.has(v.id)).length },
+    { label: "Got first order", n: list.filter((v) => vWithOrder.has(v.id)).length },
+  ];
+
+  const WEEKS = 8;
+  const signupsWk = new Array(WEEKS).fill(0);
+  for (const v of list) {
+    const w = Math.floor((now - new Date(v.created_at).getTime()) / WK);
+    if (w >= 0 && w < WEEKS) signupsWk[w]++;
+  }
+  const gmvWk = new Array(WEEKS).fill(0);
+  for (const o of allOrders) {
+    if (!counted(o.status)) continue;
+    const w = Math.floor((now - new Date(o.created_at).getTime()) / WK);
+    if (w >= 0 && w < WEEKS) gmvWk[w] += Number(o.subtotal_cad);
+  }
+  const weekLabel = (wAgo: number) => (wAgo === 0 ? "now" : `${wAgo}w`);
+  const signupSeries = Array.from({ length: WEEKS }, (_, i) => ({ label: weekLabel(WEEKS - 1 - i), value: signupsWk[WEEKS - 1 - i] }));
+  const gmvSeries = Array.from({ length: WEEKS }, (_, i) => ({ label: weekLabel(WEEKS - 1 - i), value: gmvWk[WEEKS - 1 - i] }));
+
+  const activePrev = new Set<string>();
+  for (const o of allOrders) {
+    if (!counted(o.status)) continue;
+    const d = (now - new Date(o.created_at).getTime()) / 864e5;
+    if (d >= 7 && d < 14) activePrev.add(o.vendor_id);
+  }
+  const atRisk = list.filter((v) => activePrev.has(v.id) && !active7d.has(v.id));
+  const needNudge = list.filter((v) => vWithDishes.has(v.id) && !vWithOrder.has(v.id));
+  const topKitchens = [...list]
+    .map((v) => ({ v, orders: perCount.get(v.id) || 0, rev: perRevenue.get(v.id) || 0 }))
+    .filter((x) => x.orders > 0)
+    .sort((a, b) => b.orders - a.orders)
+    .slice(0, 5);
+
   return (
     <main className="min-h-screen bg-cream">
       <header className="bg-ink text-cream px-5 py-3 flex items-center justify-between">
@@ -71,6 +118,7 @@ export default async function AdminPage() {
       <div className="px-5 pt-2"><LiveStamp at={Date.now()} /></div>
 
       <div className="mx-auto max-w-5xl px-4 py-5">
+        <h2 className="mb-2 text-sm font-semibold uppercase tracking-[0.08em] text-ink/40">Overview</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
           <Box label="Kitchens" value={String(list.length)} sub={`${list.filter((v) => v.status === "active").length} active`} />
           <Box label="Active this week" value={String(active7d.size)} sub="took an order (7d)" />
@@ -79,7 +127,72 @@ export default async function AdminPage() {
           <Box label="GMV (all-time)" value={money(gmv)} sub="all order value" />
         </div>
 
-        <h1 className="mt-6 mb-2 font-semibold text-ink">All kitchens</h1>
+        <h2 className="mt-8 mb-2 text-sm font-semibold uppercase tracking-[0.08em] text-ink/40">Analytics</h2>
+        <div className="grid gap-3 lg:grid-cols-2">
+          <div className="rounded-xl bg-white p-4 shadow-card">
+            <p className="text-sm font-semibold text-ink">Activation funnel</p>
+            <p className="text-xs text-ink/40">Where new kitchens drop off</p>
+            <div className="mt-3 space-y-2">
+              {funnel.map((f) => {
+                const pct = total ? Math.round((f.n / total) * 100) : 0;
+                return (
+                  <div key={f.label}>
+                    <div className="flex justify-between text-xs"><span className="text-ink/70">{f.label}</span><span className="text-ink/50">{f.n} · {pct}%</span></div>
+                    <div className="mt-0.5 h-2 rounded-full bg-panel"><div className="h-2 rounded-full bg-spice" style={{ width: `${pct}%` }} /></div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="rounded-xl bg-white p-4 shadow-card">
+            <p className="text-sm font-semibold text-ink">Activity &amp; retention</p>
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <div className="rounded-lg bg-panel/60 p-3"><p className="text-xl font-bold text-ink">{active7d.size}</p><p className="text-xs text-ink/50">active this week</p></div>
+              <div className="rounded-lg bg-panel/60 p-3"><p className="text-xl font-bold text-ink">{activePrev.size}</p><p className="text-xs text-ink/50">active last week</p></div>
+            </div>
+            {atRisk.length > 0 && (
+              <div className="mt-3">
+                <p className="text-xs font-semibold text-chili">At risk — went quiet ({atRisk.length})</p>
+                <p className="mt-0.5 text-xs text-ink/60">{atRisk.slice(0, 6).map((v) => v.name).join(", ")}{atRisk.length > 6 ? "…" : ""}</p>
+              </div>
+            )}
+            {needNudge.length > 0 && (
+              <div className="mt-2">
+                <p className="text-xs font-semibold text-spice">Has a menu, no orders yet ({needNudge.length})</p>
+                <p className="mt-0.5 text-xs text-ink/60">{needNudge.slice(0, 6).map((v) => v.name).join(", ")}{needNudge.length > 6 ? "…" : ""}</p>
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-xl bg-white p-4 shadow-card">
+            <p className="text-sm font-semibold text-ink">New kitchens / week</p>
+            <MiniBars data={signupSeries} />
+          </div>
+
+          <div className="rounded-xl bg-white p-4 shadow-card">
+            <p className="text-sm font-semibold text-ink">GMV / week</p>
+            <MiniBars data={gmvSeries} money />
+          </div>
+
+          <div className="rounded-xl bg-white p-4 shadow-card lg:col-span-2">
+            <p className="text-sm font-semibold text-ink">Top kitchens</p>
+            {topKitchens.length === 0 ? (
+              <p className="mt-2 text-xs text-ink/40">No orders yet.</p>
+            ) : (
+              <div className="mt-2 space-y-1.5">
+                {topKitchens.map((x, i) => (
+                  <div key={x.v.id} className="flex items-center justify-between text-sm">
+                    <span className="text-ink"><span className="text-ink/40">{i + 1}.</span> {x.v.name}</span>
+                    <span className="text-ink/60">{x.orders} orders · {money(x.rev)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <h2 className="mt-8 mb-2 text-sm font-semibold uppercase tracking-[0.08em] text-ink/40">Kitchens</h2>
         <div className="overflow-x-auto rounded-xl bg-white shadow-card">
           <table className="w-full min-w-[760px] text-sm">
             <thead className="bg-panel text-ink/60">
@@ -114,8 +227,33 @@ export default async function AdminPage() {
             </tbody>
           </table>
         </div>
+
+        <h2 className="mt-8 mb-2 text-sm font-semibold uppercase tracking-[0.08em] text-ink/40">Tools</h2>
+        <details className="group rounded-xl border border-line bg-white">
+          <summary className="flex cursor-pointer select-none list-none items-center justify-between px-4 py-3 font-display font-bold text-ink">
+            Send outreach email
+            <span className="text-ink/40 transition-transform group-open:rotate-180" aria-hidden="true">▾</span>
+          </summary>
+          <div className="border-t border-line p-4"><OutreachForm /></div>
+        </details>
       </div>
     </main>
+  );
+}
+
+function MiniBars({ data, money: isMoney }: { data: { label: string; value: number }[]; money?: boolean }) {
+  const max = Math.max(1, ...data.map((d) => d.value));
+  return (
+    <div className="mt-3">
+      <div className="flex items-end gap-1.5" style={{ height: 70 }}>
+        {data.map((d, i) => (
+          <div key={i} className="flex-1 rounded-t bg-spice/70" style={{ height: `${Math.max(3, (d.value / max) * 100)}%` }} title={`${d.label}: ${isMoney ? "$" + Math.round(d.value) : d.value}`} />
+        ))}
+      </div>
+      <div className="mt-1 flex gap-1.5">
+        {data.map((d, i) => <span key={i} className="flex-1 text-center text-[10px] text-ink/35">{d.label}</span>)}
+      </div>
+    </div>
   );
 }
 
