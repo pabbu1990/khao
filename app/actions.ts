@@ -572,7 +572,7 @@ function outreachText(name?: string) {
     "",
     `See a live example: ${exampleUrl}`,
     "",
-    "Free for our first kitchens — reply and I'll set yours up in 10 minutes. No commitment.",
+    "Reply and we'll set yours up in 10 minutes. No commitment.",
     "",
     "— The Khao team",
     "thekhao.com",
@@ -620,7 +620,7 @@ function outreachHtml(name?: string) {
           <a href="${exampleUrl}" style="display:inline-block;background:#E0922F;color:#2A1810;text-decoration:none;font-weight:700;font-size:15px;padding:13px 28px;border-radius:12px;">See a live example &rarr;</a>
         </td></tr>
         <tr><td style="padding:16px 32px 20px 32px;">
-          <p style="margin:0;font-size:15px;line-height:1.6;color:#6f6457;"><strong style="color:#2A1810;">Free for our first kitchens.</strong> Reply and I&rsquo;ll set yours up in 10 minutes — no commitment.</p>
+          <p style="margin:0;font-size:15px;line-height:1.6;color:#6f6457;">Reply and we&rsquo;ll set yours up in 10 minutes — no commitment.</p>
           <p style="margin:14px 0 0 0;font-size:14px;color:#9b8e7d;">&mdash; The Khao team</p>
         </td></tr>
         <tr><td style="padding:20px 32px 24px 32px;border-top:1px solid #EADFCD;">
