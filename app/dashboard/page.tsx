@@ -186,16 +186,16 @@ function GettingStarted({ vendorName, hasServices, hasDishes, justDid }: { vendo
       </div>
       {justDid === "service" && (
         <div className="mt-4 flex items-center gap-2 rounded-xl border border-curry/30 bg-curry/[0.06] px-4 py-2.5 text-sm font-medium text-curry">
-          <span aria-hidden="true">✓</span> Service created — now add your dishes.
+          <span aria-hidden="true">✓</span> Menu created — now add your dishes.
         </div>
       )}
       <div className="mt-6 space-y-3">
         <SetupStep n={1} done={hasServices} active={!hasServices}
-          title="Create a service"
-          desc="Group your menu by meal — e.g. Weekday Lunch, Weekend Specials. You can add a date too."
-          cta="Create your first service" href="/dashboard/services" />
+          title="Create a menu"
+          desc="Group your food by meal — e.g. Weekday Lunch, Weekend Specials. You can add a date too."
+          cta="Create your first menu" href="/dashboard/menu" />
         <SetupStep n={2} done={hasDishes} active={hasServices && !hasDishes} locked={!hasServices}
-          title="Add dishes to your menu"
+          title="Add dishes to your menus"
           desc="Add what you're cooking, with prices and an optional photo."
           cta="Add dishes" href="/dashboard/menu" />
         <SetupStep n={3} done={false} active={false} locked

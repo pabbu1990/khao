@@ -13,12 +13,15 @@ export default function MenuDishRow({ d, services, today, open, vendorLogo }: { 
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [editErr, setEditErr] = useState<string | null>(null);
 
   async function save(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setEditErr(null);
     setBusy(true);
-    await updateDish(new FormData(e.currentTarget));
+    const res = await updateDish(new FormData(e.currentTarget));
     setBusy(false);
+    if (res && !res.ok) { setEditErr(res.error || "Couldn't save the dish."); return; }
     setEditing(false);
     router.refresh();
   }
@@ -29,7 +32,8 @@ export default function MenuDishRow({ d, services, today, open, vendorLogo }: { 
         <input type="hidden" name="dish_id" value={d.id} />
         <input name="name" required defaultValue={d.name} placeholder="Dish name" className="w-full rounded-lg border border-ink/15 px-3 py-2" />
         <input name="description" defaultValue={d.description ?? ""} placeholder="Description (optional)" className="w-full rounded-lg border border-ink/15 px-3 py-2" />
-        <input name="price_cad" type="number" step="0.01" min="0" required defaultValue={Number(d.price_cad)} placeholder="Price (CAD)" className="w-full rounded-lg border border-ink/15 px-3 py-2" />
+        <input name="price_cad" type="number" step="any" min="0" required defaultValue={Number(d.price_cad)} placeholder="Price (CAD)" className="w-full rounded-lg border border-ink/15 px-3 py-2" />
+        {editErr && <p className="text-sm text-chili">{editErr}</p>}
         <div className="flex gap-2 pt-1">
           <button disabled={busy} className="rounded-lg bg-spice px-4 py-2 text-sm font-semibold text-ink disabled:opacity-60">{busy ? "Saving…" : "Save"}</button>
           <button type="button" onClick={() => setEditing(false)} className="rounded-lg border border-line px-4 py-2 text-sm font-semibold text-ink/60 transition hover:border-ink/25">Cancel</button>

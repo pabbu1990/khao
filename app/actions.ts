@@ -76,7 +76,7 @@ async function sendVendorWelcome(v: { email: string; name: string; slug: string 
     `Welcome to Khao!`,
     ``,
     `Your kitchen "${v.name}" is now set up. Here's how to start taking orders:`,
-    `1. Add your dishes (with prices and photos), grouped by service`,
+    `1. Build your menus — create a menu (like Weekday Lunch) and add dishes to it`,
     `2. Share your link with customers on WhatsApp`,
     `3. Watch orders land live on your dashboard`,
     ``,
@@ -122,7 +122,7 @@ async function sendVendorWelcome(v: { email: string; name: string; slug: string 
         </td></tr>
         <tr><td style="padding:18px 32px 0 32px;">
           <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
-            ${step("1", "Add your dishes", "Add what you're cooking — prices, photos, grouped by service.")}
+            ${step("1", "Build your menus", "Create a menu (like Weekday Lunch) and add your dishes — prices and photos.")}
             ${step("2", "Share your link", "Drop it in your WhatsApp groups, status, or chats.")}
             ${step("3", "Orders land live", "Every order appears instantly on your dashboard.")}
           </table>
@@ -261,7 +261,7 @@ export async function addService(formData: FormData): Promise<{ ok: boolean; err
     is_active: true,
   });
   if (error) return { ok: false, error: "Couldn't add the service. Please try again." };
-  revalidatePath("/dashboard/services");
+  revalidatePath("/dashboard/menu");
   revalidatePath("/dashboard/menu");
   return { ok: true };
 }
@@ -276,7 +276,7 @@ export async function updateService(formData: FormData) {
     description: String(formData.get("description") || "") || null,
     service_dates: formData.getAll("service_dates").map(String),
   }).eq("id", id).eq("vendor_id", vendor.id);
-  revalidatePath("/dashboard/services");
+  revalidatePath("/dashboard/menu");
   revalidatePath("/dashboard/menu");
 }
 
@@ -284,14 +284,14 @@ export async function toggleServiceActive(serviceId: string, active: boolean) {
   const { supabase, vendor } = await getMyVendor();
   if (!vendor) return;
   await supabase.from("services").update({ is_active: active }).eq("id", serviceId).eq("vendor_id", vendor.id);
-  revalidatePath("/dashboard/services");
+  revalidatePath("/dashboard/menu");
 }
 
 export async function deleteService(serviceId: string) {
   const { supabase, vendor } = await getMyVendor();
   if (!vendor) return;
   await supabase.from("services").delete().eq("id", serviceId).eq("vendor_id", vendor.id);
-  revalidatePath("/dashboard/services");
+  revalidatePath("/dashboard/menu");
   revalidatePath("/dashboard/menu");
 }
 
@@ -301,12 +301,14 @@ export async function addDish(formData: FormData): Promise<{ ok: boolean; error?
   if (!vendor) return { ok: false, error: "No kitchen found." };
   const name = String(formData.get("name") || "").trim();
   if (!name) return { ok: false, error: "Enter a dish name." };
+  const price = Number(formData.get("price_cad") || 0);
+  if (!(price > 0)) return { ok: false, error: "Enter a price greater than $0." };
   const { error } = await supabase.from("dishes").insert({
     vendor_id: vendor.id,
     service_id: String(formData.get("service_id") || "") || null,
     name,
     description: String(formData.get("description") || ""),
-    price_cad: Number(formData.get("price_cad") || 0),
+    price_cad: price,
     veg: formData.get("veg") === "on",
     photo_url: String(formData.get("photo_url") || "") || null,
   });
@@ -315,17 +317,22 @@ export async function addDish(formData: FormData): Promise<{ ok: boolean; error?
   return { ok: true };
 }
 
-export async function updateDish(formData: FormData) {
+export async function updateDish(formData: FormData): Promise<{ ok: boolean; error?: string }> {
   const { supabase, vendor } = await getMyVendor();
-  if (!vendor) return;
+  if (!vendor) return { ok: false, error: "No kitchen found." };
   const id = String(formData.get("dish_id") || "");
-  if (!id) return;
+  if (!id) return { ok: false, error: "Dish not found." };
+  const name = String(formData.get("name") || "").trim();
+  if (!name) return { ok: false, error: "Enter a dish name." };
+  const price = Number(formData.get("price_cad") || 0);
+  if (!(price > 0)) return { ok: false, error: "Enter a price greater than $0." };
   await supabase.from("dishes").update({
-    name: String(formData.get("name") || "").trim(),
+    name,
     description: String(formData.get("description") || "") || null,
-    price_cad: Number(formData.get("price_cad") || 0),
+    price_cad: price,
   }).eq("id", id).eq("vendor_id", vendor.id);
   revalidatePath("/dashboard/menu");
+  return { ok: true };
 }
 
 export async function setDishService(dishId: string, serviceId: string) {
@@ -378,7 +385,7 @@ export async function duplicateService(serviceId: string) {
       is_sold_out: false,
     })));
   }
-  revalidatePath("/dashboard/services");
+  revalidatePath("/dashboard/menu");
   revalidatePath("/dashboard/menu");
 }
 

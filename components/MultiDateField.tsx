@@ -24,7 +24,7 @@ export default function MultiDateField({ initial = [] }: { initial?: string[] })
 
   return (
     <div>
-      <span className="block text-sm font-medium text-ink/70">Service dates <span className="text-ink/40">(optional)</span></span>
+      <span className="block text-sm font-medium text-ink/70">Dates <span className="text-ink/40">(optional)</span></span>
       <div className="relative mt-1.5 inline-block">
         <button type="button" onClick={openPicker} className="inline-flex items-center gap-1.5 rounded-lg border border-ink/20 bg-white px-3.5 py-2 text-sm font-semibold text-ink/70 transition hover:bg-ink/5">
           <span className="text-base leading-none">+</span> Add a date

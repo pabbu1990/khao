@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { addService } from "@/app/actions";
 import MultiDateField from "@/components/MultiDateField";
 
-export default function AddServiceForm({ onboarding = false }: { onboarding?: boolean }) {
+export default function AddServiceForm({ onAdded }: { onAdded?: () => void }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -27,19 +27,18 @@ export default function AddServiceForm({ onboarding = false }: { onboarding?: bo
     const res = await addService(new FormData(e.currentTarget));
     setBusy(false);
     if (res?.ok) {
-      if (onboarding) { router.push("/dashboard?done=service"); router.refresh(); return; }
-      setMsg({ ok: true, text: "Service added." });
       setName("");
       setFormKey((k) => k + 1); // remount to clear fields + date chips
+      if (onAdded) onAdded(); else setMsg({ ok: true, text: "Menu added." });
       router.refresh();
     } else {
-      setMsg({ ok: false, text: res?.error || "Couldn't add the service. Please try again." });
+      setMsg({ ok: false, text: res?.error || "Couldn't add the menu. Please try again." });
     }
   }
 
   return (
     <form key={formKey} onSubmit={submit} className="rounded-2xl border border-line bg-white p-5 shadow-card">
-      <h2 className="font-display text-base font-bold text-ink">Add a service</h2>
+      <h2 className="font-display text-base font-bold text-ink">Add a menu</h2>
       <div className="mt-3 flex flex-wrap gap-1.5">
         {["Weekday Lunch", "Weekend Specials", "Tiffin", "Evening Snacks"].map((c) => (
           <button type="button" key={c} onClick={() => setName(c)}
@@ -59,12 +58,11 @@ export default function AddServiceForm({ onboarding = false }: { onboarding?: bo
         </label>
       </div>
       <div className="mt-3">
-        <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.06em] text-ink/45">Dates</span>
         <MultiDateField />
       </div>
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <button disabled={busy} className="rounded-xl bg-spice px-5 py-2.5 font-semibold text-ink transition hover:brightness-[1.04] disabled:opacity-60">
-          {busy ? <span className="inline-flex items-center gap-2"><Spinner />Adding…</span> : "Add service"}
+          {busy ? <span className="inline-flex items-center gap-2"><Spinner />Adding…</span> : "Add menu"}
         </button>
         {msg && <span className={`text-sm font-medium ${msg.ok ? "text-curry" : "text-chili"}`}>{msg.text}</span>}
       </div>

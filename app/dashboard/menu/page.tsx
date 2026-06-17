@@ -1,9 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import RealtimeRefresh from "@/components/RealtimeRefresh";
 import LiveStamp from "@/components/LiveStamp";
 import AddDishForm from "@/components/AddDishForm";
+import AddSectionPanel from "@/components/AddSectionPanel";
 import MenuDishRow from "@/components/MenuDishRow";
 import MenuServiceSection from "@/components/MenuServiceSection";
 import PendingButton from "@/components/PendingButton";
@@ -74,57 +74,58 @@ export default async function MenuPage() {
       <RealtimeRefresh vendorId={vendor.id} tables={["orders", "dishes", "services"]} />
       <div className="px-5 pt-2"><LiveStamp at={Date.now()} /></div>
       <div className="mx-auto max-w-3xl px-4 py-5">
-        <div className="flex items-baseline justify-between">
-          <h1 className="font-display text-2xl font-bold text-ink">Menu</h1>
-          <p className="text-xs text-ink/40">Counts reset daily (Ottawa time)</p>
-        </div>
-
 
         {services.length === 0 ? (
-          <div className="mt-4 rounded-xl bg-white p-6 text-center shadow-card">
-            <p className="text-ink/70">Create a service first — every dish belongs to a service.</p>
-            <Link href="/dashboard/services" className="mt-3 inline-block rounded-lg bg-spice px-4 py-2 font-semibold text-ink">
-              Set up a service
-            </Link>
-          </div>
+          <AddSectionPanel defaultOpen subtitle="Your food is organised into menus (like Weekday Lunch or Weekend Specials). Create your first menu, then add dishes to it." />
         ) : (
-          <div className="mt-4">
-            <AddDishForm vendorId={vendor.id} services={serviceOpts} onboarding={dishes.length === 0} />
-          </div>
-        )}
+          <>
+            <AddSectionPanel subtitle="Your menus & dishes · counts reset daily (ET)" />
 
-        {dishes.length > 0 && <h2 className="mt-6 font-display text-lg font-bold text-ink">Your dishes</h2>}
+            <div className="mt-4">
+              <AddDishForm vendorId={vendor.id} services={serviceOpts} onboarding={dishes.length === 0} />
+            </div>
 
-        {services.map((s) => {
-          const list = byService.get(s.id) ?? [];
-          const datesLabel = s.service_dates.length ? formatServiceDates(s.service_dates) : (s.available_days?.length ? s.available_days.join(", ") : "");
-          const meta = `${list.length} ${list.length === 1 ? "dish" : "dishes"}${datesLabel ? ` · ${datesLabel}` : ""}`;
-          const soldOut = list.filter((d) => d.is_sold_out).length;
-          const headerActions = list.length > 0 ? (
-            <>
-              <form action={setServiceSoldOut.bind(null, s.id, true)}>
-                <PendingButton pendingLabel="…" title="Mark this service sold out" className="rounded-lg border border-chili/25 px-2.5 py-1 text-xs font-semibold text-chili transition hover:bg-chili/10">Mark all sold out</PendingButton>
-              </form>
-              <form action={setServiceSoldOut.bind(null, s.id, false)}>
-                <PendingButton pendingLabel="…" title="Mark this service available" className="rounded-lg border border-curry/30 px-2.5 py-1 text-xs font-semibold text-curry transition hover:bg-curry/10">Mark all available</PendingButton>
-              </form>
-            </>
-          ) : null;
-          return (
-            <MenuServiceSection key={s.id} id={s.id} title={s.name} meta={meta} soldOut={soldOut} off={!s.is_active} headerActions={headerActions}>
-              {list.length === 0 ? (
-                <p className="rounded-xl bg-white px-4 py-3 text-sm text-ink/40 shadow-card">No dishes in this service yet — add one above.</p>
-              ) : (
-                list.map(row)
-              )}
-            </MenuServiceSection>
-          );
-        })}
+            <h2 className="mt-6 font-display text-lg font-bold text-ink">Your menus</h2>
 
-        {unassigned.length > 0 && (
-          <MenuServiceSection id="unassigned" title="Unassigned" meta={`${unassigned.length} ${unassigned.length === 1 ? "dish" : "dishes"} · pick a service`}>
-            {unassigned.map(row)}
-          </MenuServiceSection>
+            {services.map((s) => {
+              const list = byService.get(s.id) ?? [];
+              const datesLabel = s.service_dates.length ? formatServiceDates(s.service_dates) : (s.available_days?.length ? s.available_days.join(", ") : "");
+              const meta = `${list.length} ${list.length === 1 ? "dish" : "dishes"}${datesLabel ? ` · ${datesLabel}` : ""}`;
+              const soldOut = list.filter((d) => d.is_sold_out).length;
+              const markAll = list.length > 0 ? (
+                <>
+                  <form action={setServiceSoldOut.bind(null, s.id, true)}>
+                    <PendingButton pendingLabel="…" title="Mark this menu sold out" className="rounded-lg border border-chili/25 px-2.5 py-1 text-xs font-semibold text-chili transition hover:bg-chili/10 sm:border-chili/25 max-sm:w-full max-sm:border-0 max-sm:text-left">Mark all sold out</PendingButton>
+                  </form>
+                  <form action={setServiceSoldOut.bind(null, s.id, false)}>
+                    <PendingButton pendingLabel="…" title="Mark this menu available" className="rounded-lg border border-curry/30 px-2.5 py-1 text-xs font-semibold text-curry transition hover:bg-curry/10 max-sm:w-full max-sm:border-0 max-sm:text-left">Mark all available</PendingButton>
+                  </form>
+                </>
+              ) : null;
+              return (
+                <MenuServiceSection key={s.id} service={s} meta={meta} soldOut={soldOut} markAll={markAll}>
+                  {list.length === 0 ? (
+                    <p className="rounded-xl bg-white px-4 py-3 text-sm text-ink/40 shadow-card">No dishes in this menu yet — add one above.</p>
+                  ) : (
+                    list.map(row)
+                  )}
+                </MenuServiceSection>
+              );
+            })}
+
+            {unassigned.length > 0 && (
+              <section className="mt-3 rounded-2xl border border-line bg-white">
+                <div className="px-4 py-3">
+                  <span className="font-display text-base font-bold text-ink/60">Unassigned</span>
+                  <span className="ml-2 text-xs font-medium text-ink/45">{unassigned.length} {unassigned.length === 1 ? "dish" : "dishes"} · pick a menu</span>
+                </div>
+                <div className="space-y-2 rounded-b-2xl border-t border-line bg-panel/40 p-3">
+                  <p className="text-xs text-ink/45">These dishes have no menu, so they don&rsquo;t show on your page. Pick a menu for each below.</p>
+                  {unassigned.map(row)}
+                </div>
+              </section>
+            )}
+          </>
         )}
       </div>
     </main>

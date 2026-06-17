@@ -12,7 +12,6 @@ export default function DashboardNav({ openCount = 0 }: { openCount?: number }) 
     pathname === "/dashboard" ? "orders"
     : pathname.startsWith("/dashboard/report") ? "report"
     : pathname.startsWith("/dashboard/menu") ? "menu"
-    : pathname.startsWith("/dashboard/services") ? "services"
     : pathname.startsWith("/dashboard/settings") ? "settings"
     : "orders";
 
@@ -37,8 +36,7 @@ export default function DashboardNav({ openCount = 0 }: { openCount?: number }) 
           <span className="mr-3 flex items-center gap-1.5"><Logo size={20} /><span className="font-display text-xl font-semibold tracking-tight text-spice">Khao</span></span>
           {tab("orders", "/dashboard", "Orders", openCount)}
           {tab("report", "/dashboard/report", "Report")}
-          {tab("menu", "/dashboard/menu", "Menu")}
-          {tab("services", "/dashboard/services", "Services")}
+          {tab("menu", "/dashboard/menu", "Menus")}
           {tab("settings", "/dashboard/settings", "Settings")}
         </div>
         <form action={signOut}>
