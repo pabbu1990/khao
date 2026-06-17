@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import Spinner from "@/components/Spinner";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -21,6 +22,7 @@ export default function AddDishForm({ vendorId, services, onboarding = false }: 
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
+  const [showFinish, setShowFinish] = useState(false);
 
   useEffect(() => {
     if (msg) {
@@ -67,11 +69,11 @@ export default function AddDishForm({ vendorId, services, onboarding = false }: 
       if (photoUrl) fd.set("photo_url", photoUrl);
       const res = await addDish(fd);
       if (!res.ok) { setErr(res.error || "Couldn't add the dish."); return; }
-      if (onboarding) { router.push("/dashboard?done=ready"); router.refresh(); return; }
       setName(""); setPrice(""); setDescription(""); setVeg(false);
       setFile(null); setPreview(null);
       if (fileRef.current) fileRef.current.value = "";
-      setMsg("Dish added.");
+      setMsg("Dish added — add another below.");
+      if (onboarding) setShowFinish(true); // first dish during setup: reveal the finish CTA
       router.refresh();
     } finally {
       setBusy(false);
@@ -79,6 +81,13 @@ export default function AddDishForm({ vendorId, services, onboarding = false }: 
   }
 
   return (
+    <>
+    {showFinish && (
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-curry/30 bg-curry/[0.06] px-5 py-3">
+        <p className="text-sm font-medium text-ink/70">Add as many dishes as you like. When your menu&rsquo;s ready, head to your dashboard to share your link.</p>
+        <Link href="/dashboard?done=ready" className="shrink-0 rounded-xl bg-curry px-4 py-2 text-sm font-semibold text-white transition hover:brightness-105">Go to my dashboard →</Link>
+      </div>
+    )}
     <form onSubmit={submit} className="mt-4 grid grid-cols-1 gap-3 rounded-xl bg-white p-4 shadow-card sm:grid-cols-2">
       <select required value={serviceId} onChange={(e) => setServiceId(e.target.value)} className="rounded-lg border border-ink/15 px-3 py-2 sm:col-span-2 bg-white">
         <option value="" disabled>Choose a service…</option>
@@ -113,5 +122,6 @@ export default function AddDishForm({ vendorId, services, onboarding = false }: 
       {err && <p className="text-chili text-sm sm:col-span-2">{err}</p>}
       {msg && <p className="text-sm font-medium text-curry sm:col-span-2">{msg}</p>}
     </form>
+    </>
   );
 }

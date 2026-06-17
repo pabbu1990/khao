@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import ShareLink from "@/components/ShareLink";
 
 // Collapsible "Your ordering link" panel for the Orders page: a slim bar that
@@ -9,16 +9,8 @@ export default function ShareLinkPanel({ link }: { link: string }) {
   const [open, setOpen] = useState(false);
   const shortUrl = link.replace(/^https?:\/\//, "");
 
-  useEffect(() => {
-    setOpen(localStorage.getItem("khao_share_open") === "1");
-  }, []);
-
   function toggle() {
-    setOpen((o) => {
-      const next = !o;
-      localStorage.setItem("khao_share_open", next ? "1" : "0");
-      return next;
-    });
+    setOpen((o) => !o);
   }
 
   return (
