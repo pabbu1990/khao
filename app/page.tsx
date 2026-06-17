@@ -75,19 +75,19 @@ export default function Home() {
         <section id="pricing" className="mt-24 scroll-mt-24">
           <h2 className="font-display text-3xl font-bold">Simple, honest pricing</h2>
           <div className="mt-8 grid max-w-3xl gap-4 sm:grid-cols-2">
-            <div className="rounded-2xl border border-spice/40 bg-white/[0.03] p-6">
+            <div className="flex flex-col rounded-2xl border border-spice/40 bg-white/[0.03] p-6">
               <span className="inline-block rounded-full bg-spice/15 px-3 py-1 text-xs font-semibold text-spice">Early access</span>
               <p className="mt-4 font-display text-4xl font-bold">Free <span className="text-lg font-semibold text-cream/50">to start</span></p>
               <p className="mt-3 text-sm leading-relaxed text-cream/70">
                 We're onboarding our first Ottawa kitchens free while we get going. No commission on
                 orders — ever. A simple flat monthly fee per kitchen comes at launch.
               </p>
-              <Link href="/login?mode=signup" className="mt-5 inline-block rounded-xl bg-spice px-5 py-2.5 font-semibold text-ink transition hover:brightness-[1.04] active:scale-[.99]">
+              <Link href="/login?mode=signup" className="mt-auto inline-block self-start rounded-xl bg-spice px-5 py-2.5 font-semibold text-ink transition hover:brightness-[1.04] active:scale-[.99]">
                 Start free
               </Link>
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-6">
+            <div className="flex flex-col rounded-2xl border border-white/10 bg-white/[0.02] p-6">
               <span className="inline-block rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-cream/60">Coming soon</span>
               <p className="mt-4 font-display text-4xl font-bold text-cream/90">Pro</p>
               <p className="mt-3 text-sm leading-relaxed text-cream/60">
@@ -100,7 +100,7 @@ export default function Home() {
                 <li>Advanced analytics</li>
                 <li>Your own custom domain</li>
               </ul>
-              <a href="#contact" className="mt-5 inline-block rounded-xl border border-white/20 px-5 py-2.5 font-semibold text-cream/80 transition hover:bg-white/5">
+              <a href="#contact" className="mt-auto inline-block self-start rounded-xl border border-white/20 px-5 py-2.5 font-semibold text-cream/80 transition hover:bg-white/5">
                 Get notified
               </a>
             </div>
