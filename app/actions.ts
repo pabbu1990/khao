@@ -557,6 +557,7 @@ function parseRecipients(raw: string): { recipients: { email: string; name?: str
 
 function outreachText(name?: string) {
   const hi = name ? `Hi ${name},` : "Hi there,";
+  const exampleUrl = process.env.OUTREACH_EXAMPLE_URL || "https://thekhao.com";
   return [
     hi,
     "",
@@ -569,7 +570,7 @@ function outreachText(name?: string) {
     "- Every order in one live dashboard, organised for you",
     "- No commission — you keep 100%, your customers and your payments",
     "",
-    "See a live example: https://thekhao.com/spice-place",
+    `See a live example: ${exampleUrl}`,
     "",
     "Free for our first kitchens — reply and I'll set yours up in 10 minutes. No commitment.",
     "",
@@ -582,6 +583,7 @@ function outreachText(name?: string) {
 
 function outreachHtml(name?: string) {
   const hi = name ? `Hi ${esc(name)},` : "Hi there,";
+  const exampleUrl = process.env.OUTREACH_EXAMPLE_URL || "https://thekhao.com";
   const check = (t: string) =>
     `<tr>
       <td valign="top" style="width:24px;padding:5px 0;"><span style="display:inline-block;width:18px;height:18px;border-radius:50%;background:#E7F0E9;color:#3E7A4E;font-size:12px;line-height:18px;text-align:center;font-weight:700;">&#10003;</span></td>
@@ -615,7 +617,7 @@ function outreachHtml(name?: string) {
           </table>
         </td></tr>
         <tr><td style="padding:20px 32px 4px 32px;">
-          <a href="https://thekhao.com/spice-place" style="display:inline-block;background:#E0922F;color:#2A1810;text-decoration:none;font-weight:700;font-size:15px;padding:13px 28px;border-radius:12px;">See a live example &rarr;</a>
+          <a href="${exampleUrl}" style="display:inline-block;background:#E0922F;color:#2A1810;text-decoration:none;font-weight:700;font-size:15px;padding:13px 28px;border-radius:12px;">See a live example &rarr;</a>
         </td></tr>
         <tr><td style="padding:16px 32px 20px 32px;">
           <p style="margin:0;font-size:15px;line-height:1.6;color:#6f6457;"><strong style="color:#2A1810;">Free for our first kitchens.</strong> Reply and I&rsquo;ll set yours up in 10 minutes — no commitment.</p>
