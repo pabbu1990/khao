@@ -8,7 +8,7 @@ import { addDish } from "@/app/actions";
 
 const MAX_MB = 5;
 
-export default function AddDishForm({ vendorId, services }: { vendorId: string; services: { id: string; name: string }[] }) {
+export default function AddDishForm({ vendorId, services, onboarding = false }: { vendorId: string; services: { id: string; name: string }[]; onboarding?: boolean }) {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
   const [name, setName] = useState("");
@@ -67,6 +67,7 @@ export default function AddDishForm({ vendorId, services }: { vendorId: string; 
       if (photoUrl) fd.set("photo_url", photoUrl);
       const res = await addDish(fd);
       if (!res.ok) { setErr(res.error || "Couldn't add the dish."); return; }
+      if (onboarding) { router.push("/dashboard?done=ready"); router.refresh(); return; }
       setName(""); setPrice(""); setDescription(""); setVeg(false);
       setFile(null); setPreview(null);
       if (fileRef.current) fileRef.current.value = "";

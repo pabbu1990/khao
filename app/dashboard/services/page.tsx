@@ -19,6 +19,11 @@ export default async function ServicesPage() {
     .from("services").select("*").eq("vendor_id", vendor.id).order("sort_order").order("created_at");
   const list = (services ?? []) as Service[];
 
+  // First-run onboarding: until the kitchen has at least one dish, adding a
+  // service should guide them back to the dashboard to continue the steps.
+  const { count: dishCount } = await supabase.from("dishes").select("*", { count: "exact", head: true }).eq("vendor_id", vendor.id);
+  const onboarding = (dishCount ?? 0) === 0;
+
   return (
     <main className="min-h-screen bg-cream">
       <DashboardNav active="services" />
@@ -29,7 +34,7 @@ export default async function ServicesPage() {
           show on your page. The date just tells you and your customers which day the service is for.
         </p>
 
-        <AddServiceForm />
+        <AddServiceForm onboarding={onboarding} />
 
         <div className="mt-5 space-y-2">
           {list.length === 0 && <p className="text-ink/50 py-6 text-center">No services yet — add one above, then add dishes to it under Menu.</p>}

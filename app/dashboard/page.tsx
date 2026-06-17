@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import DashboardNav from "@/components/DashboardNav";
 import ShareLinkPanel from "@/components/ShareLinkPanel";
+import ShareLink from "@/components/ShareLink";
 import SubmitButton from "@/components/SubmitButton";
 import PendingButton from "@/components/PendingButton";
 import LiveStamp from "@/components/LiveStamp";
@@ -19,13 +20,14 @@ type OrderRow = Order & { order_items: OrderItem[] };
 const torontoDate = (iso: string | Date) =>
   new Intl.DateTimeFormat("en-CA", { timeZone: "America/Toronto" }).format(new Date(iso));
 
-export default async function Dashboard() {
+export default async function Dashboard({ searchParams }: { searchParams: { done?: string } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
   const { data: vendor } = await supabase.from("vendors").select("*").eq("owner_id", user.id).order("created_at", { ascending: true }).limit(1).maybeSingle();
   if (!vendor) return <OnboardingForm />;
+  const justDid = searchParams?.done;
 
   const { data: orders } = await supabase
     .from("orders").select("*, order_items(*)").eq("vendor_id", vendor.id)
@@ -63,7 +65,7 @@ export default async function Dashboard() {
       <DashboardNav active="orders" />
 
       {!setupDone ? (
-        <GettingStarted vendorName={vendor.name} hasServices={hasServices} hasDishes={hasDishes} />
+        <GettingStarted vendorName={vendor.name} hasServices={hasServices} hasDishes={hasDishes} justDid={justDid} />
       ) : (
       <div className="mx-auto max-w-4xl px-4 py-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -93,6 +95,23 @@ export default async function Dashboard() {
             </PendingButton>
           </form>
         </div>
+
+        {!vendor.accepting_orders && (
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-chili/30 bg-chili/[0.06] px-5 py-3">
+            <p className="text-sm font-medium text-chili">You&rsquo;re not accepting orders right now — customers can&rsquo;t place an order.</p>
+            <form action={toggleAcceptingOrders.bind(null, true)}>
+              <PendingButton pendingLabel="…" className="rounded-xl bg-chili px-4 py-2 text-sm font-semibold text-white transition hover:brightness-105">Resume orders</PendingButton>
+            </form>
+          </div>
+        )}
+
+        {justDid === "ready" && (
+          <div className="mt-4 rounded-2xl border-2 border-curry/40 bg-curry/[0.06] p-5 shadow-card">
+            <p className="font-display text-xl font-bold text-ink">🎉 You&rsquo;re live!</p>
+            <p className="mt-1 text-sm text-ink/60">Your kitchen is ready. Share your link with customers — every order lands right here on this dashboard.</p>
+            <div className="mt-3"><ShareLink link={link} /></div>
+          </div>
+        )}
 
         <ShareLinkPanel link={link} />
 
@@ -140,11 +159,22 @@ export default async function Dashboard() {
   );
 }
 
-function GettingStarted({ vendorName, hasServices, hasDishes }: { vendorName: string; hasServices: boolean; hasDishes: boolean }) {
+function GettingStarted({ vendorName, hasServices, hasDishes, justDid }: { vendorName: string; hasServices: boolean; hasDishes: boolean; justDid?: string }) {
+  const step = hasServices ? (hasDishes ? 3 : 2) : 1;
+  const doneCount = (hasServices ? 1 : 0) + (hasDishes ? 1 : 0);
   return (
     <div className="mx-auto max-w-2xl px-4 py-10">
-      <h1 className="font-display text-3xl font-bold text-ink">Welcome, {vendorName}</h1>
+      <p className="text-xs font-semibold uppercase tracking-[0.15em] text-spice">Step {step} of 3</p>
+      <h1 className="mt-1 font-display text-3xl font-bold text-ink">Welcome, {vendorName}</h1>
       <p className="mt-1.5 text-ink/60">Let&rsquo;s get your kitchen ready to take orders — three quick steps.</p>
+      <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-ink/10">
+        <div className="h-full rounded-full bg-spice transition-all" style={{ width: `${(doneCount / 3) * 100}%` }} />
+      </div>
+      {justDid === "service" && (
+        <div className="mt-4 flex items-center gap-2 rounded-xl border border-curry/30 bg-curry/[0.06] px-4 py-2.5 text-sm font-medium text-curry">
+          <span aria-hidden="true">✓</span> Service created — now add your dishes.
+        </div>
+      )}
       <div className="mt-6 space-y-3">
         <SetupStep n={1} done={hasServices} active={!hasServices}
           title="Create a service"

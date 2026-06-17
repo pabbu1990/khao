@@ -85,7 +85,7 @@ export default async function MenuPage() {
             </Link>
           </div>
         ) : (
-          <AddDishForm vendorId={vendor.id} services={serviceOpts} />
+          <AddDishForm vendorId={vendor.id} services={serviceOpts} onboarding={dishes.length === 0} />
         )}
 
         {services.map((s) => {

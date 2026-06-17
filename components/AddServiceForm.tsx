@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { addService } from "@/app/actions";
 import MultiDateField from "@/components/MultiDateField";
 
-export default function AddServiceForm() {
+export default function AddServiceForm({ onboarding = false }: { onboarding?: boolean }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -26,6 +26,7 @@ export default function AddServiceForm() {
     const res = await addService(new FormData(e.currentTarget));
     setBusy(false);
     if (res?.ok) {
+      if (onboarding) { router.push("/dashboard?done=service"); router.refresh(); return; }
       setMsg({ ok: true, text: "Service added." });
       setFormKey((k) => k + 1); // remount to clear fields + date chips
       router.refresh();
