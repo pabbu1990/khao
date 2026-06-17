@@ -5,8 +5,10 @@ import RealtimeRefresh from "@/components/RealtimeRefresh";
 import LiveStamp from "@/components/LiveStamp";
 import AddDishForm from "@/components/AddDishForm";
 import MenuDishRow from "@/components/MenuDishRow";
+import MenuServiceSection from "@/components/MenuServiceSection";
 import PendingButton from "@/components/PendingButton";
 import { setAllSoldOut } from "@/app/actions";
+import { formatServiceDates } from "@/lib/format";
 import type { Dish, Service } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -100,29 +102,28 @@ export default async function MenuPage() {
           <AddDishForm vendorId={vendor.id} services={serviceOpts} onboarding={dishes.length === 0} />
         )}
 
+        {dishes.length > 0 && <h2 className="mt-6 font-display text-lg font-bold text-ink">Your dishes</h2>}
+
         {services.map((s) => {
           const list = byService.get(s.id) ?? [];
+          const datesLabel = s.service_dates.length ? formatServiceDates(s.service_dates) : (s.available_days?.length ? s.available_days.join(", ") : "");
+          const meta = `${list.length} ${list.length === 1 ? "dish" : "dishes"}${datesLabel ? ` · ${datesLabel}` : ""}`;
+          const soldOut = list.filter((d) => d.is_sold_out).length;
           return (
-            <section key={s.id} className="mt-6">
-              <h2 className="font-display text-lg font-bold text-ink">
-                {s.name}
-                {!s.is_active && <span className="ml-2 rounded-full bg-ink/10 px-2 py-0.5 text-xs font-semibold text-ink/50">Off</span>}
-              </h2>
+            <MenuServiceSection key={s.id} id={s.id} title={s.name} meta={meta} soldOut={soldOut} off={!s.is_active}>
               {list.length === 0 ? (
-                <p className="text-sm text-ink/40 mt-1">No dishes in this service yet.</p>
+                <p className="rounded-xl bg-white px-4 py-3 text-sm text-ink/40 shadow-card">No dishes in this service yet — add one above.</p>
               ) : (
-                <div className="mt-2 space-y-2">{list.map(row)}</div>
+                list.map(row)
               )}
-            </section>
+            </MenuServiceSection>
           );
         })}
 
         {unassigned.length > 0 && (
-          <section className="mt-6">
-            <h2 className="font-display text-lg font-bold text-ink/60">Unassigned</h2>
-            <p className="text-sm text-ink/40">Pick a service for these so they appear on your page.</p>
-            <div className="mt-2 space-y-2">{unassigned.map(row)}</div>
-          </section>
+          <MenuServiceSection id="unassigned" title="Unassigned" meta={`${unassigned.length} ${unassigned.length === 1 ? "dish" : "dishes"} · pick a service`}>
+            {unassigned.map(row)}
+          </MenuServiceSection>
         )}
       </div>
     </main>
