@@ -27,12 +27,13 @@ export default async function ServicesPage() {
     <main className="min-h-screen bg-cream">
       <div className="mx-auto max-w-3xl px-4 py-5">
         <h1 className="font-display text-2xl font-bold text-ink">Services</h1>
-        <p className="text-ink/60 text-sm mt-1">
-          Set up meal services (e.g. Weekday lunch, Weekend specials, Evening snacks). Only <strong>active</strong> services
-          show on your page. The date just tells you and your customers which day the service is for.
+        <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-ink/55">
+          Group your menu by meal — e.g. Weekday Lunch, Weekend Specials. Only <strong className="font-semibold text-ink/70">active</strong> services show on your page; the date tells customers which day it&rsquo;s for.
         </p>
 
-        <AddServiceForm onboarding={onboarding} />
+        <div className="mt-5">
+          <AddServiceForm onboarding={onboarding} />
+        </div>
 
         <div className="mt-5 space-y-2">
           {list.length === 0 && <p className="text-ink/50 py-6 text-center">No services yet — add one above, then add dishes to it under Menu.</p>}

@@ -7,7 +7,7 @@ import AddDishForm from "@/components/AddDishForm";
 import MenuDishRow from "@/components/MenuDishRow";
 import MenuServiceSection from "@/components/MenuServiceSection";
 import PendingButton from "@/components/PendingButton";
-import { setAllSoldOut } from "@/app/actions";
+import { setServiceSoldOut } from "@/app/actions";
 import { formatServiceDates } from "@/lib/format";
 import type { Dish, Service } from "@/lib/types";
 
@@ -79,17 +79,6 @@ export default async function MenuPage() {
           <p className="text-xs text-ink/40">Counts reset daily (Ottawa time)</p>
         </div>
 
-        {dishes.length > 0 && (
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <span className="text-xs text-ink/45">Quick:</span>
-            <form action={setAllSoldOut.bind(null, true)}>
-              <PendingButton pendingLabel="…" className="rounded-lg border border-chili/25 px-3 py-1.5 text-xs font-semibold text-chili transition hover:bg-chili/10">Mark all sold out</PendingButton>
-            </form>
-            <form action={setAllSoldOut.bind(null, false)}>
-              <PendingButton pendingLabel="…" className="rounded-lg border border-curry/30 px-3 py-1.5 text-xs font-semibold text-curry transition hover:bg-curry/10">Mark all available</PendingButton>
-            </form>
-          </div>
-        )}
 
         {services.length === 0 ? (
           <div className="mt-4 rounded-xl bg-white p-6 text-center shadow-card">
@@ -99,7 +88,9 @@ export default async function MenuPage() {
             </Link>
           </div>
         ) : (
-          <AddDishForm vendorId={vendor.id} services={serviceOpts} onboarding={dishes.length === 0} />
+          <div className="mt-4">
+            <AddDishForm vendorId={vendor.id} services={serviceOpts} onboarding={dishes.length === 0} />
+          </div>
         )}
 
         {dishes.length > 0 && <h2 className="mt-6 font-display text-lg font-bold text-ink">Your dishes</h2>}
@@ -109,8 +100,18 @@ export default async function MenuPage() {
           const datesLabel = s.service_dates.length ? formatServiceDates(s.service_dates) : (s.available_days?.length ? s.available_days.join(", ") : "");
           const meta = `${list.length} ${list.length === 1 ? "dish" : "dishes"}${datesLabel ? ` · ${datesLabel}` : ""}`;
           const soldOut = list.filter((d) => d.is_sold_out).length;
+          const headerActions = list.length > 0 ? (
+            <>
+              <form action={setServiceSoldOut.bind(null, s.id, true)}>
+                <PendingButton pendingLabel="…" title="Mark this service sold out" className="rounded-lg border border-chili/25 px-2.5 py-1 text-xs font-semibold text-chili transition hover:bg-chili/10">Mark all sold out</PendingButton>
+              </form>
+              <form action={setServiceSoldOut.bind(null, s.id, false)}>
+                <PendingButton pendingLabel="…" title="Mark this service available" className="rounded-lg border border-curry/30 px-2.5 py-1 text-xs font-semibold text-curry transition hover:bg-curry/10">Mark all available</PendingButton>
+              </form>
+            </>
+          ) : null;
           return (
-            <MenuServiceSection key={s.id} id={s.id} title={s.name} meta={meta} soldOut={soldOut} off={!s.is_active}>
+            <MenuServiceSection key={s.id} id={s.id} title={s.name} meta={meta} soldOut={soldOut} off={!s.is_active} headerActions={headerActions}>
               {list.length === 0 ? (
                 <p className="rounded-xl bg-white px-4 py-3 text-sm text-ink/40 shadow-card">No dishes in this service yet — add one above.</p>
               ) : (

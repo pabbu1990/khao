@@ -382,11 +382,12 @@ export async function duplicateService(serviceId: string) {
   revalidatePath("/dashboard/menu");
 }
 
-// Bulk mark every dish sold out (end of service) or available again (start of day).
-export async function setAllSoldOut(soldOut: boolean) {
+// Mark every dish in one service sold out (end of that service) or available again.
+// Kitchen-wide "stop" is handled by pausing orders on the dashboard instead.
+export async function setServiceSoldOut(serviceId: string, soldOut: boolean) {
   const { supabase, vendor } = await getMyVendor();
   if (!vendor) return;
-  await supabase.from("dishes").update({ is_sold_out: soldOut }).eq("vendor_id", vendor.id);
+  await supabase.from("dishes").update({ is_sold_out: soldOut }).eq("vendor_id", vendor.id).eq("service_id", serviceId);
   revalidatePath("/dashboard/menu");
 }
 
