@@ -138,13 +138,13 @@ async function sendVendorWelcome(v: { email: string; name: string; slug: string 
           &nbsp;
           ${btn(link, "View my page", "#ffffff", "#2A1810")}
         </td></tr>
-        <tr><td style="padding:18px 32px 0 32px;">
+        <tr><td style="padding:18px 32px 22px 32px;">
           <p style="margin:0;font-size:14px;line-height:1.6;color:#6f6457;">
             And the best part — <strong style="color:#3E7A4E;">Khao never takes a commission.</strong> Every order is yours, and you handle payment and delivery your way.
           </p>
         </td></tr>
-        <tr><td style="padding:18px 32px 26px 32px;border-top:1px solid #EADFCD;margin-top:8px;">
-          <p style="margin:14px 0 0 0;font-size:13px;line-height:1.6;color:#9b8e7d;">
+        <tr><td style="padding:20px 32px 26px 32px;border-top:1px solid #EADFCD;">
+          <p style="margin:0;font-size:13px;line-height:1.6;color:#9b8e7d;">
             Questions or need a hand getting set up? Just reply to this email — a real person will help.
           </p>
           <p style="margin:10px 0 0 0;font-size:13px;color:#9b8e7d;">— The Khao team</p>
