@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import DashboardNav from "@/components/DashboardNav";
 import ServiceRow from "@/components/ServiceRow";
 import AddServiceForm from "@/components/AddServiceForm";
 import type { Service } from "@/lib/types";
@@ -26,7 +25,6 @@ export default async function ServicesPage() {
 
   return (
     <main className="min-h-screen bg-cream">
-      <DashboardNav active="services" />
       <div className="mx-auto max-w-3xl px-4 py-5">
         <h1 className="font-display text-2xl font-bold text-ink">Services</h1>
         <p className="text-ink/60 text-sm mt-1">

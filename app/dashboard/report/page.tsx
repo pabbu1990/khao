@@ -1,10 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import DashboardNav from "@/components/DashboardNav";
 import PendingButton from "@/components/PendingButton";
 import RealtimeRefresh from "@/components/RealtimeRefresh";
 import LiveStamp from "@/components/LiveStamp";
+import ReportFilterMemory from "@/components/ReportFilterMemory";
 import { setPaymentStatus } from "@/app/actions";
 import { money, ORDER_STATUS_LABEL } from "@/lib/format";
 import type { Order, OrderItem } from "@/lib/types";
@@ -57,8 +57,8 @@ export default async function ReportPage({ searchParams }: { searchParams: { ran
 
   return (
     <main className="min-h-screen bg-cream">
-      <DashboardNav active="report" />
       <RealtimeRefresh vendorId={vendor.id} tables={["orders"]} />
+      <ReportFilterMemory />
       <div className="px-5 pt-2"><LiveStamp at={Date.now()} /></div>
       <div className="mx-auto max-w-6xl px-4 py-5">
         <div className="flex flex-wrap items-center justify-between gap-3">

@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import DashboardNav from "@/components/DashboardNav";
 import ShareLink from "@/components/ShareLink";
 import LogoUpload from "@/components/LogoUpload";
 import SettingsForm from "@/components/SettingsForm";
@@ -19,7 +18,6 @@ export default async function SettingsPage() {
 
   return (
     <main className="min-h-screen bg-cream">
-      <DashboardNav active="settings" />
       <div className="mx-auto max-w-2xl px-4 py-5">
         <h1 className="font-display text-2xl font-bold text-ink">Settings</h1>
 

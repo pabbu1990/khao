@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import DashboardNav from "@/components/DashboardNav";
 import ShareLinkPanel from "@/components/ShareLinkPanel";
 import ShareLink from "@/components/ShareLink";
 import SubmitButton from "@/components/SubmitButton";
@@ -62,7 +61,6 @@ export default async function Dashboard({ searchParams }: { searchParams: { done
 
   return (
     <main className="min-h-screen bg-cream">
-      <DashboardNav active="orders" />
 
       {!setupDone ? (
         <GettingStarted vendorName={vendor.name} hasServices={hasServices} hasDishes={hasDishes} justDid={justDid} />
@@ -135,9 +133,19 @@ export default async function Dashboard({ searchParams }: { searchParams: { done
         <section className="mt-6">
           <h2 className="mb-3 font-display text-xl font-bold text-ink">Live orders</h2>
           {open.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-line bg-white/60 py-12 text-center">
-              <p className="font-medium text-ink/70">No open orders yet</p>
-              <p className="mt-1 text-sm text-ink/45">New orders appear here the moment a customer places one.</p>
+            <div className="rounded-2xl border border-dashed border-line bg-white/60 py-10 text-center">
+              {rows.length === 0 ? (
+                <>
+                  <p className="font-medium text-ink/70">No orders yet</p>
+                  <p className="mt-1 text-sm text-ink/45">Share your ordering link to get your first order.</p>
+                  <div className="mx-auto mt-4 max-w-md px-4"><ShareLink link={link} /></div>
+                </>
+              ) : (
+                <>
+                  <p className="font-medium text-ink/70">No open orders right now</p>
+                  <p className="mt-1 text-sm text-ink/45">New orders appear here the moment a customer places one.</p>
+                </>
+              )}
             </div>
           ) : (
             <div className="space-y-3">{open.map((o) => <OrderCard key={o.id} o={o} />)}</div>

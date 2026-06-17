@@ -3,7 +3,7 @@
 import { useState } from "react";
 import PendingButton from "@/components/PendingButton";
 import { useRouter } from "next/navigation";
-import { updateService, toggleServiceActive, deleteService } from "@/app/actions";
+import { updateService, toggleServiceActive, deleteService, duplicateService } from "@/app/actions";
 import { formatServiceDates } from "@/lib/format";
 import MultiDateField from "@/components/MultiDateField";
 import type { Service } from "@/lib/types";
@@ -50,6 +50,9 @@ export default function ServiceRow({ s }: { s: Service }) {
         {s.service_dates.length > 0 && <p className="mt-0.5 text-xs font-medium text-ink/50">{formatServiceDates(s.service_dates)}</p>}
       </div>
       <button onClick={() => setEditing(true)} className="rounded-lg border border-ink/20 px-3 py-1.5 text-sm font-semibold text-ink/70 transition hover:bg-ink/5">Edit</button>
+      <form action={duplicateService.bind(null, s.id)} title="Copy this service and its dishes">
+        <PendingButton pendingLabel="…" className="rounded-lg border border-ink/20 bg-white px-3 py-1.5 text-sm font-semibold text-ink/70 transition hover:bg-ink/5">Duplicate</PendingButton>
+      </form>
       <form action={toggleServiceActive.bind(null, s.id, !s.is_active)}>
         <PendingButton className="rounded-lg border border-ink/20 bg-white px-3 py-1.5 text-sm font-semibold text-ink/70 transition hover:bg-ink/5">{s.is_active ? "Turn off" : "Turn on"}</PendingButton>
       </form>

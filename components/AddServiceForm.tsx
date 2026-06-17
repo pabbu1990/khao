@@ -11,6 +11,7 @@ export default function AddServiceForm({ onboarding = false }: { onboarding?: bo
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [formKey, setFormKey] = useState(0);
+  const [name, setName] = useState("");
 
   useEffect(() => {
     if (msg?.ok) {
@@ -28,6 +29,7 @@ export default function AddServiceForm({ onboarding = false }: { onboarding?: bo
     if (res?.ok) {
       if (onboarding) { router.push("/dashboard?done=service"); router.refresh(); return; }
       setMsg({ ok: true, text: "Service added." });
+      setName("");
       setFormKey((k) => k + 1); // remount to clear fields + date chips
       router.refresh();
     } else {
@@ -37,7 +39,15 @@ export default function AddServiceForm({ onboarding = false }: { onboarding?: bo
 
   return (
     <form key={formKey} onSubmit={submit} className="mt-4 space-y-3 rounded-xl bg-white p-4 shadow-card">
-      <input name="name" required placeholder="Service name (e.g. Weekday Lunch)" className="w-full rounded-lg border border-ink/15 px-3 py-2" />
+      <div className="flex flex-wrap gap-1.5">
+        {["Weekday Lunch", "Weekend Specials", "Tiffin", "Evening Snacks"].map((c) => (
+          <button type="button" key={c} onClick={() => setName(c)}
+            className="rounded-full border border-spice/30 bg-spice/10 px-3 py-1 text-xs font-semibold text-spice transition hover:bg-spice/20">
+            {c}
+          </button>
+        ))}
+      </div>
+      <input name="name" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Service name (e.g. Weekday Lunch)" className="w-full rounded-lg border border-ink/15 px-3 py-2" />
       <input name="description" placeholder="Short description (optional)" className="w-full rounded-lg border border-ink/15 px-3 py-2" />
       <MultiDateField />
       <div className="flex flex-wrap items-center gap-3">

@@ -30,6 +30,9 @@ export default function ShareLink({ link }: { link: string }) {
         <button onClick={() => setShowQr((v) => !v)} className="rounded-lg border border-line px-3.5 py-2 text-sm font-semibold text-ink/70 transition hover:border-ink/25">
           {showQr ? "Hide QR" : "QR code"}
         </button>
+        <a href={link} target="_blank" rel="noopener noreferrer" className="rounded-lg border border-line px-3.5 py-2 text-sm font-semibold text-ink/70 transition hover:border-ink/25">
+          View my page ↗
+        </a>
       </div>
       {showQr && (
         // eslint-disable-next-line @next/next/no-img-element

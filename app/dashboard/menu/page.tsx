@@ -1,11 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import DashboardNav from "@/components/DashboardNav";
 import RealtimeRefresh from "@/components/RealtimeRefresh";
 import LiveStamp from "@/components/LiveStamp";
 import AddDishForm from "@/components/AddDishForm";
 import MenuDishRow from "@/components/MenuDishRow";
+import PendingButton from "@/components/PendingButton";
+import { setAllSoldOut } from "@/app/actions";
 import type { Dish, Service } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -68,7 +69,6 @@ export default async function MenuPage() {
 
   return (
     <main className="min-h-screen bg-cream">
-      <DashboardNav active="menu" />
       <RealtimeRefresh vendorId={vendor.id} tables={["orders", "dishes", "services"]} />
       <div className="px-5 pt-2"><LiveStamp at={Date.now()} /></div>
       <div className="mx-auto max-w-3xl px-4 py-5">
@@ -76,6 +76,18 @@ export default async function MenuPage() {
           <h1 className="font-display text-2xl font-bold text-ink">Menu</h1>
           <p className="text-xs text-ink/40">Counts reset daily (Ottawa time)</p>
         </div>
+
+        {dishes.length > 0 && (
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span className="text-xs text-ink/45">Quick:</span>
+            <form action={setAllSoldOut.bind(null, true)}>
+              <PendingButton pendingLabel="…" className="rounded-lg border border-chili/25 px-3 py-1.5 text-xs font-semibold text-chili transition hover:bg-chili/10">Mark all sold out</PendingButton>
+            </form>
+            <form action={setAllSoldOut.bind(null, false)}>
+              <PendingButton pendingLabel="…" className="rounded-lg border border-curry/30 px-3 py-1.5 text-xs font-semibold text-curry transition hover:bg-curry/10">Mark all available</PendingButton>
+            </form>
+          </div>
+        )}
 
         {services.length === 0 ? (
           <div className="mt-4 rounded-xl bg-white p-6 text-center shadow-card">

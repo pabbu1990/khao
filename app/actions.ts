@@ -281,6 +281,47 @@ export async function deleteDish(dishId: string) {
   revalidatePath("/dashboard/menu");
 }
 
+// Duplicate a service together with its dishes — lets a vendor reuse last week's
+// menu without rebuilding it. New copy resets dates and marks dishes available.
+export async function duplicateService(serviceId: string) {
+  const { supabase, vendor } = await getMyVendor();
+  if (!vendor) return;
+  const { data: svc } = await supabase.from("services").select("*").eq("id", serviceId).eq("vendor_id", vendor.id).maybeSingle();
+  if (!svc) return;
+  const { data: newSvc } = await supabase.from("services").insert({
+    vendor_id: vendor.id,
+    name: `${svc.name} (copy)`,
+    description: svc.description ?? null,
+    available_days: svc.available_days ?? [],
+    is_active: svc.is_active,
+  }).select("id").single();
+  if (!newSvc) return;
+  const { data: dishes } = await supabase.from("dishes").select("*").eq("service_id", serviceId).eq("vendor_id", vendor.id);
+  if (dishes && dishes.length) {
+    await supabase.from("dishes").insert(dishes.map((d) => ({
+      vendor_id: vendor.id,
+      service_id: newSvc.id,
+      name: d.name,
+      description: d.description ?? null,
+      price_cad: d.price_cad,
+      veg: d.veg,
+      photo_url: d.photo_url ?? null,
+      is_active: d.is_active,
+      is_sold_out: false,
+    })));
+  }
+  revalidatePath("/dashboard/services");
+  revalidatePath("/dashboard/menu");
+}
+
+// Bulk mark every dish sold out (end of service) or available again (start of day).
+export async function setAllSoldOut(soldOut: boolean) {
+  const { supabase, vendor } = await getMyVendor();
+  if (!vendor) return;
+  await supabase.from("dishes").update({ is_sold_out: soldOut }).eq("vendor_id", vendor.id);
+  revalidatePath("/dashboard/menu");
+}
+
 // ---------- orders ----------
 export async function updateOrderStatus(orderId: string, status: OrderStatus) {
   const { supabase, vendor } = await getMyVendor();
