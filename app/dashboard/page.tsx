@@ -65,7 +65,7 @@ export default async function Dashboard({ searchParams }: { searchParams: { done
       {!setupDone ? (
         <GettingStarted vendorName={vendor.name} hasServices={hasServices} hasDishes={hasDishes} justDid={justDid} />
       ) : (
-      <div className="mx-auto max-w-5xl px-4 py-6">
+      <div className="mx-auto max-w-4xl px-4 py-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h1 className="font-display text-3xl font-bold uppercase text-ink">{vendor.name}</h1>
@@ -114,65 +114,59 @@ export default async function Dashboard({ searchParams }: { searchParams: { done
           </div>
         )}
 
-        <div className="mt-5 grid gap-5 lg:grid-cols-3">
-          <aside className="space-y-4 lg:col-span-1">
-            <div>
-              <h2 className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-ink/40">Today</h2>
-              <div className="grid grid-cols-3 gap-3 lg:grid-cols-1">
-                <Stat label="Open orders" value={String(open.length)} />
-                <Stat label="Today's orders" value={String(todayOrders)} />
-                <Stat label="Today's revenue" value={money(todayRevenue)} />
-              </div>
-            </div>
+        <ShareLinkPanel link={link} />
 
-            <ShareLinkPanel link={link} />
-
-            {prep.size > 0 && (
-              <div className="rounded-2xl bg-white p-4 shadow-card">
-                <p className="mb-2 text-sm font-semibold text-ink/70">Prep list <span className="font-normal text-ink/40">· open orders</span></p>
-                <div className="flex flex-wrap gap-2">
-                  {[...prep.entries()].map(([name, qty]) => (
-                    <span key={name} className="rounded-full bg-panel px-3 py-1 text-sm font-medium text-ink">{name} × {qty}</span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </aside>
-
-          <div className="space-y-6 lg:col-span-2">
-            <section>
-              <h2 className="mb-3 font-display text-xl font-bold text-ink">Live orders</h2>
-              {open.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-line bg-white/60 py-10 text-center">
-                  {rows.length === 0 ? (
-                    <>
-                      <p className="font-medium text-ink/70">No orders yet</p>
-                      <p className="mt-1 text-sm text-ink/45">Share your ordering link to get your first order.</p>
-                      <div className="mx-auto mt-4 max-w-md px-4"><ShareLink link={link} /></div>
-                    </>
-                  ) : (
-                    <>
-                      <p className="font-medium text-ink/70">No open orders right now</p>
-                      <p className="mt-1 text-sm text-ink/45">New orders appear here the moment a customer places one.</p>
-                    </>
-                  )}
-                </div>
-              ) : (
-                <div className="space-y-3">{open.map((o) => <OrderCard key={o.id} o={o} />)}</div>
-              )}
-            </section>
-
-            {doneToday.length > 0 && (
-              <section>
-                <h2 className="mb-2 font-display text-lg font-bold text-ink/60">Recent <span className="font-normal text-ink/40">· today</span></h2>
-                <div className="divide-y divide-line overflow-hidden rounded-2xl bg-white shadow-card">
-                  {doneToday.slice(0, 25).map((o) => <RecentOrderRow key={o.id} o={o} />)}
-                </div>
-                <Link href="/dashboard/report" className="mt-3 inline-block text-sm font-semibold text-spice">See all orders in Report →</Link>
-              </section>
-            )}
+        <div className="mt-4">
+          <h2 className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-ink/40">Today</h2>
+          <div className="grid grid-cols-3 gap-3">
+            <Stat label="Open orders" value={String(open.length)} />
+            <Stat label="Today's orders" value={String(todayOrders)} />
+            <Stat label="Today's revenue" value={money(todayRevenue)} />
           </div>
         </div>
+
+        {prep.size > 0 && (
+          <div className="mt-4 rounded-2xl bg-white p-4 shadow-card">
+            <p className="mb-2 text-sm font-semibold text-ink/70">Prep list <span className="font-normal text-ink/40">· open orders</span></p>
+            <div className="flex flex-wrap gap-2">
+              {[...prep.entries()].map(([name, qty]) => (
+                <span key={name} className="rounded-full bg-panel px-3 py-1 text-sm font-medium text-ink">{name} × {qty}</span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <section className="mt-6">
+          <h2 className="mb-3 font-display text-xl font-bold text-ink">Live orders</h2>
+          {open.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-line bg-white/60 py-10 text-center">
+              {rows.length === 0 ? (
+                <>
+                  <p className="font-medium text-ink/70">No orders yet</p>
+                  <p className="mt-1 text-sm text-ink/45">Share your ordering link to get your first order.</p>
+                  <div className="mx-auto mt-4 max-w-md px-4"><ShareLink link={link} /></div>
+                </>
+              ) : (
+                <>
+                  <p className="font-medium text-ink/70">No open orders right now</p>
+                  <p className="mt-1 text-sm text-ink/45">New orders appear here the moment a customer places one.</p>
+                </>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-3">{open.map((o) => <OrderCard key={o.id} o={o} />)}</div>
+          )}
+        </section>
+
+        {doneToday.length > 0 && (
+          <section className="mt-8">
+            <h2 className="mb-2 font-display text-lg font-bold text-ink/60">Recent <span className="font-normal text-ink/40">· today</span></h2>
+            <div className="divide-y divide-line overflow-hidden rounded-2xl bg-white shadow-card">
+              {doneToday.slice(0, 25).map((o) => <RecentOrderRow key={o.id} o={o} />)}
+            </div>
+            <Link href="/dashboard/report" className="mt-3 inline-block text-sm font-semibold text-spice">See all orders in Report →</Link>
+          </section>
+        )}
       </div>
       )}
     </main>
@@ -233,9 +227,9 @@ function SetupStep({ n, done, active, locked, title, desc, cta, href }: { n: num
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl bg-white p-5 shadow-card">
-      <p className="text-3xl font-bold text-ink">{value}</p>
-      <p className="mt-0.5 text-sm text-ink/50">{label}</p>
+    <div className="rounded-xl bg-white px-4 py-3 shadow-card">
+      <p className="text-2xl font-bold leading-tight text-ink">{value}</p>
+      <p className="mt-0.5 text-xs text-ink/50">{label}</p>
     </div>
   );
 }
