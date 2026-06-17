@@ -74,36 +74,24 @@ export default function Home() {
 
         <section id="pricing" className="mt-24 scroll-mt-24">
           <h2 className="font-display text-3xl font-bold">Simple, honest pricing</h2>
-          <div className="mt-8 grid max-w-3xl gap-4 sm:grid-cols-2">
-            <div className="flex flex-col rounded-2xl border border-spice/40 bg-white/[0.03] p-6">
-              <span className="inline-block rounded-full bg-spice/15 px-3 py-1 text-xs font-semibold text-spice">Early access</span>
-              <p className="mt-4 font-display text-4xl font-bold">Free <span className="text-lg font-semibold text-cream/50">to start</span></p>
-              <p className="mt-3 text-sm leading-relaxed text-cream/70">
-                We're onboarding our first Ottawa kitchens free while we get going. No commission on
-                orders — ever. A simple flat monthly fee per kitchen comes at launch.
-              </p>
-              <Link href="/login?mode=signup" className="mt-auto inline-block self-start rounded-xl bg-spice px-5 py-2.5 font-semibold text-ink transition hover:brightness-[1.04] active:scale-[.99]">
-                Start free
-              </Link>
-            </div>
-
-            <div className="flex flex-col rounded-2xl border border-white/10 bg-white/[0.02] p-6">
-              <span className="inline-block rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-cream/60">Coming soon</span>
-              <p className="mt-4 font-display text-4xl font-bold text-cream/90">Pro</p>
-              <p className="mt-3 text-sm leading-relaxed text-cream/60">
-                More power as you grow. Everything in the free plan, plus:
-              </p>
-              <ul className="mt-3 space-y-1.5 text-sm text-cream/70">
-                <li>Online card payments</li>
-                <li>Multiple kitchens &amp; locations</li>
-                <li>Featured placement &amp; promotions</li>
-                <li>Advanced analytics</li>
-                <li>Your own custom domain</li>
-              </ul>
-              <a href="#contact" className="mt-auto inline-block self-start rounded-xl border border-white/20 px-5 py-2.5 font-semibold text-cream/80 transition hover:bg-white/5">
-                Get notified
-              </a>
-            </div>
+          <div className="mt-8 max-w-xl rounded-2xl border border-spice/40 bg-white/[0.03] p-8">
+            <span className="inline-block rounded-full bg-spice/15 px-3 py-1 text-xs font-semibold text-spice">Free during early access</span>
+            <p className="mt-4 font-display text-5xl font-bold">Free <span className="text-xl font-semibold text-cream/50">to use</span></p>
+            <p className="mt-3 max-w-md text-sm leading-relaxed text-cream/70">
+              We&rsquo;re onboarding Ottawa&rsquo;s first kitchens completely free — and we never take a commission on your orders. Everything you need to start taking orders is included.
+            </p>
+            <ul className="mt-6 grid gap-x-6 gap-y-2.5 text-sm text-cream/80 sm:grid-cols-2">
+              <li className="flex items-center gap-2"><span className="text-spice">✓</span> Your own ordering page</li>
+              <li className="flex items-center gap-2"><span className="text-spice">✓</span> Live order dashboard</li>
+              <li className="flex items-center gap-2"><span className="text-spice">✓</span> Weekly menus by service</li>
+              <li className="flex items-center gap-2"><span className="text-spice">✓</span> Unlimited orders</li>
+              <li className="flex items-center gap-2"><span className="text-spice">✓</span> Share via WhatsApp &amp; QR</li>
+              <li className="flex items-center gap-2"><span className="text-spice">✓</span> No commission, ever</li>
+            </ul>
+            <Link href="/login?mode=signup" className="mt-7 inline-block rounded-xl bg-spice px-6 py-3 font-semibold text-ink transition hover:brightness-[1.04] active:scale-[.99]">
+              Start free
+            </Link>
+            <p className="mt-3 text-xs text-cream/40">No card required to start.</p>
           </div>
         </section>
 
