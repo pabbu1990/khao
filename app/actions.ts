@@ -44,6 +44,64 @@ function safeSlug(s: string, fallback = "kitchen") {
   return RESERVED_SLUGS.has(base) ? `${base}-kitchen` : base;
 }
 
+// Notify the Khao team when a new kitchen signs up. Best-effort: never blocks
+// or fails vendor creation if email isn't configured or sending errors.
+async function notifyNewVendor(v: { email: string; name: string; area: string; slug: string }) {
+  const key = process.env.RESEND_API_KEY;
+  const to = process.env.ADMIN_NOTIFY_EMAIL || "kiranpabbu.90@gmail.com";
+  if (!key) return;
+  try {
+    await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: process.env.CONTACT_FROM || "Khao <noreply@thekhao.com>",
+        to: [to],
+        reply_to: v.email,
+        subject: `New Khao kitchen: ${v.name}`,
+        text: `A new kitchen just signed up on Khao.\n\nKitchen: ${v.name}\nArea: ${v.area || "-"}\nOwner email: ${v.email}\nPage: https://thekhao.com/${v.slug}`,
+      }),
+    });
+  } catch { /* ignore — notification is non-critical */ }
+}
+
+// Welcome the vendor when their kitchen goes live. Best-effort.
+async function sendVendorWelcome(v: { email: string; name: string; slug: string }) {
+  const key = process.env.RESEND_API_KEY;
+  if (!key || !v.email) return;
+  const link = `https://thekhao.com/${v.slug}`;
+  try {
+    await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: process.env.WELCOME_FROM || "Khao <hello@thekhao.com>",
+        to: [v.email],
+        reply_to: process.env.ADMIN_NOTIFY_EMAIL || "kiranpabbu.90@gmail.com",
+        subject: `${v.name} is live on Khao`,
+        text: [
+          `Hi,`,
+          ``,
+          `Your kitchen "${v.name}" is now set up on Khao. Here's how to start taking orders:`,
+          ``,
+          `1. Create a service (e.g. Weekday Lunch or Weekend Specials)`,
+          `2. Add your dishes, with prices and photos`,
+          `3. Share your ordering link with customers on WhatsApp`,
+          ``,
+          `Your ordering page: ${link}`,
+          `Your dashboard:    https://thekhao.com/dashboard`,
+          ``,
+          `Every order your customers place lands live on your dashboard.`,
+          ``,
+          `Questions? Just reply to this email.`,
+          ``,
+          `— The Khao team`,
+        ].join("\n"),
+      }),
+    });
+  } catch { /* ignore — welcome email is non-critical */ }
+}
+
 export async function createVendor(formData: FormData): Promise<{ ok: boolean; error?: string }> {
   const { user } = await requireUser();
   const name = String(formData.get("name") || "").trim();
@@ -76,6 +134,9 @@ export async function createVendor(formData: FormData): Promise<{ ok: boolean; e
     ({ error } = await admin.from("vendors").insert({ owner_id: user.id, name, slug, area }));
   }
   if (error) return { ok: false, error: error.message };
+
+  await notifyNewVendor({ email: user.email ?? "", name, area, slug });
+  await sendVendorWelcome({ email: user.email ?? "", name, slug });
 
   revalidatePath("/dashboard");
   return { ok: true };
@@ -343,7 +404,7 @@ export async function sendContactMessage(input: { name: string; email: string; p
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      from: process.env.CONTACT_FROM || "Khao <onboarding@resend.dev>",
+      from: process.env.CONTACT_FROM || "Khao <noreply@thekhao.com>",
       to: [to],
       reply_to: email,
       subject: `New Khao contact: ${name}`,
