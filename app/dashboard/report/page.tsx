@@ -1,10 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import PendingButton from "@/components/PendingButton";
 import RealtimeRefresh from "@/components/RealtimeRefresh";
 import LiveStamp from "@/components/LiveStamp";
 import ReportFilterMemory from "@/components/ReportFilterMemory";
+import ReportFilters from "@/components/ReportFilters";
 import { setPaymentStatus } from "@/app/actions";
 import { money, ORDER_STATUS_LABEL } from "@/lib/format";
 import type { Order, OrderItem } from "@/lib/types";
@@ -52,9 +52,6 @@ export default async function ReportPage({ searchParams }: { searchParams: { ran
   }
 
   const total = rows.reduce((s, o) => s + Number(o.subtotal_cad), 0);
-  const chip = (active: boolean) =>
-    `rounded-lg px-3 py-1.5 text-sm font-semibold ${active ? "bg-spice text-ink" : "bg-white text-ink/60 border border-ink/10"}`;
-
   return (
     <main className="min-h-screen bg-cream">
       <RealtimeRefresh vendorId={vendor.id} tables={["orders"]} />
@@ -71,15 +68,7 @@ export default async function ReportPage({ searchParams }: { searchParams: { ran
           </a>
         </div>
 
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          {RANGES.map((r) => (
-            <Link key={r.key} href={`/dashboard/report?range=${r.key}&status=${status}`} className={chip(range === r.key)}>{r.label}</Link>
-          ))}
-          <span className="mx-1 text-ink/20">|</span>
-          {STATUSES.map((s) => (
-            <Link key={s.key} href={`/dashboard/report?range=${range}&status=${s.key}`} className={chip(status === s.key)}>{s.label}</Link>
-          ))}
-        </div>
+        <ReportFilters range={range} status={status} ranges={RANGES} statuses={STATUSES} />
 
         <p className="mt-3 text-sm text-ink/60">{rows.length} order{rows.length === 1 ? "" : "s"} · {money(total)} total</p>
 
