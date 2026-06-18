@@ -32,7 +32,7 @@ export default function HomeNav() {
         <div className="border-t border-white/10 px-6 py-4 sm:hidden">
           <div className="flex flex-col gap-3 text-cream/80">
             {LINKS.map(([h, l]) => <a key={h} href={h} onClick={() => setOpen(false)} className="transition hover:text-cream">{l}</a>)}
-            <Link href="/login" onClick={() => setOpen(false)} className="transition hover:text-cream">Vendor login</Link>
+            <Link href="/login" onClick={() => setOpen(false)} className="rounded-lg border border-white/20 px-4 py-2 text-center font-semibold text-cream/80 transition hover:border-white/35 hover:bg-white/5 hover:text-cream">Vendor login</Link>
             <Link href="/login?mode=signup" onClick={() => setOpen(false)} className="rounded-lg bg-spice px-4 py-2 text-center font-semibold text-ink">Get started</Link>
           </div>
         </div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import Logo from "@/components/Logo";
 import Spinner from "@/components/Spinner";
@@ -68,7 +69,7 @@ export default function LoginPage() {
       <div className="pointer-events-none absolute -bottom-24 -left-20 h-72 w-72 rounded-full bg-chili/15 blur-3xl" />
 
       <div className="relative w-full max-w-sm">
-        <span className="flex items-center gap-2"><Logo size={30} /><span className="font-display text-3xl font-bold tracking-tight text-spice">Khao</span></span>
+        <Link href="/" className="inline-flex items-center gap-2 transition hover:opacity-80"><Logo size={30} /><span className="font-display text-3xl font-bold tracking-tight text-spice">Khao</span></Link>
         <h1 className="mt-5 font-display text-3xl font-semibold leading-tight">
           {mode === "signup" ? "Create your kitchen account" : "Welcome back"}
         </h1>

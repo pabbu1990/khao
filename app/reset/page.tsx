@@ -57,7 +57,7 @@ export default function Reset() {
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-ink px-6 text-cream">
       <div className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-spice/20 blur-3xl" />
       <div className="relative w-full max-w-sm">
-        <span className="flex items-center gap-2"><Logo size={30} /><span className="font-display text-3xl font-bold tracking-tight text-spice">Khao</span></span>
+        <Link href="/" className="inline-flex items-center gap-2 transition hover:opacity-80"><Logo size={30} /><span className="font-display text-3xl font-bold tracking-tight text-spice">Khao</span></Link>
 
         {ready === "invalid" ? (
           <>
