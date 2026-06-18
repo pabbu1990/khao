@@ -161,7 +161,7 @@ async function sendVendorWelcome(v: { email: string; name: string; slug: string 
       body: JSON.stringify({
         from: process.env.WELCOME_FROM || "Khao <hello@thekhao.com>",
         to: [v.email],
-        reply_to: process.env.ADMIN_NOTIFY_EMAIL || "kiranpabbu.90@gmail.com",
+        reply_to: process.env.REPLY_TO || "hello@thekhao.com",
         subject: `Welcome to Khao — ${v.name} is live`,
         text,
         html,
@@ -643,7 +643,7 @@ export async function sendOutreach(formData: FormData): Promise<{ ok: boolean; s
   const subject = String(formData.get("subject") || "").trim() || "Quick idea for your kitchen's orders";
   const mode = String(formData.get("mode") || "send");
   const from = process.env.OUTREACH_FROM || process.env.WELCOME_FROM || "Khao <hello@thekhao.com>";
-  const replyTo = process.env.ADMIN_NOTIFY_EMAIL || "kiranpabbu.90@gmail.com";
+  const replyTo = process.env.REPLY_TO || "hello@thekhao.com";
 
   let targets: { email: string; name?: string }[];
   let invalid: string[] = [];
