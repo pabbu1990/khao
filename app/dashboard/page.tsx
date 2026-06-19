@@ -28,13 +28,21 @@ export default async function Dashboard({ searchParams }: { searchParams: { done
   if (!vendor) return <OnboardingForm />;
   const justDid = searchParams?.done;
 
-  const { data: orders } = await supabase
+  // Open orders: all of them (never capped) so a busy kitchen can't lose one.
+  const { data: openData } = await supabase
     .from("orders").select("*, order_items(*)").eq("vendor_id", vendor.id)
-    .order("created_at", { ascending: false }).limit(100);
+    .in("status", ["placed", "accepted", "ready"]).order("created_at", { ascending: false }).limit(500);
+  const open = (openData ?? []) as OrderRow[];
 
-  const rows = (orders ?? []) as OrderRow[];
-  const open = rows.filter((o) => ["placed", "accepted", "ready"].includes(o.status));
-  const done = rows.filter((o) => ["completed", "declined", "cancelled"].includes(o.status));
+  // Recent window (48h) for today's stats + the "Recent · today" list.
+  const since48h = new Date(Date.now() - 48 * 3600 * 1000).toISOString();
+  const { data: recentData } = await supabase
+    .from("orders").select("*, order_items(*)").eq("vendor_id", vendor.id)
+    .gte("created_at", since48h).order("created_at", { ascending: false }).limit(1000);
+  const recent = (recentData ?? []) as OrderRow[];
+
+  // Has this kitchen ever had an order? (drives the empty state)
+  const { count: totalOrders } = await supabase.from("orders").select("*", { count: "exact", head: true }).eq("vendor_id", vendor.id);
 
   const prep = new Map<string, number>();
   for (const o of open) for (const it of o.order_items) {
@@ -44,13 +52,13 @@ export default async function Dashboard({ searchParams }: { searchParams: { done
   const todayTO = torontoDate(new Date());
   let todayOrders = 0;
   let todayRevenue = 0;
-  for (const o of rows) {
+  for (const o of recent) {
     if (torontoDate(o.created_at) !== todayTO) continue;
     if (o.status === "declined" || o.status === "cancelled") continue;
     todayOrders++;
     todayRevenue += Number(o.subtotal_cad);
   }
-  const doneToday = done.filter((o) => torontoDate(o.created_at) === todayTO);
+  const doneToday = recent.filter((o) => ["completed", "declined", "cancelled"].includes(o.status) && torontoDate(o.created_at) === todayTO);
   const link = `${siteUrl()}/${vendor.slug}`;
 
   const { count: servicesCount } = await supabase.from("services").select("*", { count: "exact", head: true }).eq("vendor_id", vendor.id);
@@ -140,7 +148,7 @@ export default async function Dashboard({ searchParams }: { searchParams: { done
           <h2 className="mb-3 font-display text-xl font-bold text-ink">Live orders</h2>
           {open.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-line bg-white/60 py-10 text-center">
-              {rows.length === 0 ? (
+              {(totalOrders ?? 0) === 0 ? (
                 <>
                   <p className="font-medium text-ink/70">No orders yet</p>
                   <p className="mt-1 text-sm text-ink/45">Share your ordering link to get your first order.</p>
