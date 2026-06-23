@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { setVendorLogo } from "@/app/actions";
+import { compressImage } from "@/lib/compressImage";
 
 export default function LogoUpload({ vendorId, current }: { vendorId: string; current: string | null }) {
   const router = useRouter();
@@ -14,12 +15,13 @@ export default function LogoUpload({ vendorId, current }: { vendorId: string; cu
   async function pick(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
     if (!f) return;
-    if (f.size > 5 * 1024 * 1024) { setErr("Image must be under 5 MB."); return; }
+    if (f.size > 25 * 1024 * 1024) { setErr("Image must be under 25 MB."); return; }
     setBusy(true); setErr(null);
     const supabase = createClient();
-    const ext = (f.name.split(".").pop() || "jpg").toLowerCase();
+    const out = await compressImage(f, { maxDim: 512, quality: 0.85 });
+    const ext = (out.name.split(".").pop() || "jpg").toLowerCase();
     const path = `${vendorId}/logo-${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from("dish-photos").upload(path, f, { upsert: false });
+    const { error } = await supabase.storage.from("dish-photos").upload(path, out, { cacheControl: "2592000", upsert: false });
     if (error) { setErr(error.message); setBusy(false); return; }
     const pub = supabase.storage.from("dish-photos").getPublicUrl(path).data.publicUrl;
     await setVendorLogo(pub);

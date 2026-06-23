@@ -5,9 +5,10 @@ import Link from "next/link";
 import Spinner from "@/components/Spinner";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { compressImage } from "@/lib/compressImage";
 import { addDish } from "@/app/actions";
 
-const MAX_MB = 5;
+const MAX_MB = 25;
 
 export default function AddDishForm({ vendorId, services, onboarding = false }: { vendorId: string; services: { id: string; name: string }[]; onboarding?: boolean }) {
   const router = useRouter();
@@ -58,9 +59,10 @@ export default function AddDishForm({ vendorId, services, onboarding = false }: 
       let photoUrl = "";
       if (file) {
         const supabase = createClient();
-        const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+        const out = await compressImage(file, { maxDim: 1280, quality: 0.8 });
+        const ext = (out.name.split(".").pop() || "jpg").toLowerCase();
         const path = `${vendorId}/${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage.from("dish-photos").upload(path, file, { cacheControl: "3600", upsert: false });
+        const { error: upErr } = await supabase.storage.from("dish-photos").upload(path, out, { cacheControl: "2592000", upsert: false });
         if (upErr) { setErr(`Upload failed: ${upErr.message}`); setBusy(false); return; }
         photoUrl = supabase.storage.from("dish-photos").getPublicUrl(path).data.publicUrl;
       }

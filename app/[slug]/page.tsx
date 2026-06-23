@@ -1,12 +1,12 @@
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import Storefront from "@/components/Storefront";
 import type { Dish, Vendor, Service } from "@/lib/types";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 10;
 
 export default async function StorefrontPage({ params }: { params: { slug: string } }) {
-  const supabase = createClient();
+  const supabase = createPublicClient();
 
   const { data: vendor } = await supabase
     .from("vendors")

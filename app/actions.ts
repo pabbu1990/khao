@@ -213,6 +213,7 @@ export async function createVendor(formData: FormData): Promise<{ ok: boolean; e
 export async function updateVendorSettings(formData: FormData): Promise<{ ok: boolean; error?: string; note?: string }> {
   const { supabase, vendor } = await getMyVendor();
   if (!vendor) return { ok: false, error: "No kitchen found." };
+  revalidatePath(`/${vendor.slug}`);
 
   let acceptCash = formData.get("accept_cash") === "on";
   const acceptInterac = formData.get("accept_interac") === "on";
@@ -251,6 +252,7 @@ export async function updateVendorSettings(formData: FormData): Promise<{ ok: bo
 export async function addService(formData: FormData): Promise<{ ok: boolean; error?: string }> {
   const { supabase, vendor } = await getMyVendor();
   if (!vendor) return { ok: false, error: "No kitchen found." };
+  revalidatePath(`/${vendor.slug}`);
   const name = String(formData.get("name") || "").trim();
   if (!name) return { ok: false, error: "Enter a service name." };
   const { error } = await supabase.from("services").insert({
@@ -269,6 +271,7 @@ export async function addService(formData: FormData): Promise<{ ok: boolean; err
 export async function updateService(formData: FormData) {
   const { supabase, vendor } = await getMyVendor();
   if (!vendor) return;
+  revalidatePath(`/${vendor.slug}`);
   const id = String(formData.get("service_id") || "");
   if (!id) return;
   await supabase.from("services").update({
@@ -283,6 +286,7 @@ export async function updateService(formData: FormData) {
 export async function toggleServiceActive(serviceId: string, active: boolean) {
   const { supabase, vendor } = await getMyVendor();
   if (!vendor) return;
+  revalidatePath(`/${vendor.slug}`);
   await supabase.from("services").update({ is_active: active }).eq("id", serviceId).eq("vendor_id", vendor.id);
   revalidatePath("/dashboard/menu");
 }
@@ -290,6 +294,7 @@ export async function toggleServiceActive(serviceId: string, active: boolean) {
 export async function deleteService(serviceId: string) {
   const { supabase, vendor } = await getMyVendor();
   if (!vendor) return;
+  revalidatePath(`/${vendor.slug}`);
   await supabase.from("services").delete().eq("id", serviceId).eq("vendor_id", vendor.id);
   revalidatePath("/dashboard/menu");
   revalidatePath("/dashboard/menu");
@@ -299,6 +304,7 @@ export async function deleteService(serviceId: string) {
 export async function addDish(formData: FormData): Promise<{ ok: boolean; error?: string }> {
   const { supabase, vendor } = await getMyVendor();
   if (!vendor) return { ok: false, error: "No kitchen found." };
+  revalidatePath(`/${vendor.slug}`);
   const name = String(formData.get("name") || "").trim();
   if (!name) return { ok: false, error: "Enter a dish name." };
   const price = Number(formData.get("price_cad") || 0);
@@ -320,6 +326,7 @@ export async function addDish(formData: FormData): Promise<{ ok: boolean; error?
 export async function updateDish(formData: FormData): Promise<{ ok: boolean; error?: string }> {
   const { supabase, vendor } = await getMyVendor();
   if (!vendor) return { ok: false, error: "No kitchen found." };
+  revalidatePath(`/${vendor.slug}`);
   const id = String(formData.get("dish_id") || "");
   if (!id) return { ok: false, error: "Dish not found." };
   const name = String(formData.get("name") || "").trim();
@@ -338,6 +345,7 @@ export async function updateDish(formData: FormData): Promise<{ ok: boolean; err
 export async function setDishService(dishId: string, serviceId: string) {
   const { supabase, vendor } = await getMyVendor();
   if (!vendor) return;
+  revalidatePath(`/${vendor.slug}`);
   await supabase.from("dishes").update({ service_id: serviceId || null }).eq("id", dishId).eq("vendor_id", vendor.id);
   revalidatePath("/dashboard/menu");
 }
@@ -345,6 +353,7 @@ export async function setDishService(dishId: string, serviceId: string) {
 export async function toggleSoldOut(dishId: string, soldOut: boolean) {
   const { supabase, vendor } = await getMyVendor();
   if (!vendor) return;
+  revalidatePath(`/${vendor.slug}`);
   await supabase.from("dishes").update({ is_sold_out: soldOut }).eq("id", dishId).eq("vendor_id", vendor.id);
   revalidatePath("/dashboard/menu");
 }
@@ -352,6 +361,7 @@ export async function toggleSoldOut(dishId: string, soldOut: boolean) {
 export async function deleteDish(dishId: string) {
   const { supabase, vendor } = await getMyVendor();
   if (!vendor) return;
+  revalidatePath(`/${vendor.slug}`);
   await supabase.from("dishes").delete().eq("id", dishId).eq("vendor_id", vendor.id);
   revalidatePath("/dashboard/menu");
 }
@@ -361,6 +371,7 @@ export async function deleteDish(dishId: string) {
 export async function duplicateService(serviceId: string) {
   const { supabase, vendor } = await getMyVendor();
   if (!vendor) return;
+  revalidatePath(`/${vendor.slug}`);
   const { data: svc } = await supabase.from("services").select("*").eq("id", serviceId).eq("vendor_id", vendor.id).maybeSingle();
   if (!svc) return;
   const { data: newSvc } = await supabase.from("services").insert({
@@ -394,6 +405,7 @@ export async function duplicateService(serviceId: string) {
 export async function setServiceSoldOut(serviceId: string, soldOut: boolean) {
   const { supabase, vendor } = await getMyVendor();
   if (!vendor) return;
+  revalidatePath(`/${vendor.slug}`);
   await supabase.from("dishes").update({ is_sold_out: soldOut }).eq("vendor_id", vendor.id).eq("service_id", serviceId);
   revalidatePath("/dashboard/menu");
 }
@@ -430,6 +442,14 @@ export async function placeOrder(input: PlaceOrderInput): Promise<{ ok: boolean;
   const admin = createAdminClient();
   const ids = input.items.map((i) => i.dishId);
   if (ids.length === 0) return { ok: false, error: "Your cart is empty." };
+
+  const { data: vrow } = await admin
+    .from("vendors")
+    .select("accepting_orders,status")
+    .eq("id", input.vendorId)
+    .maybeSingle();
+  if (!vrow || vrow.status !== "active") return { ok: false, error: "This kitchen isn't available right now." };
+  if (!vrow.accepting_orders) return { ok: false, error: "This kitchen isn't accepting orders right now." };
 
   const { data: dishes } = await admin
     .from("dishes")
@@ -487,6 +507,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<{ ok: boolean;
 export async function setVendorLogo(url: string) {
   const { supabase, vendor } = await getMyVendor();
   if (!vendor) return;
+  revalidatePath(`/${vendor.slug}`);
   await supabase.from("vendors").update({ logo_url: url || null }).eq("id", vendor.id);
   revalidatePath("/dashboard/settings");
 }
@@ -494,6 +515,7 @@ export async function setVendorLogo(url: string) {
 export async function toggleAcceptingOrders(next: boolean) {
   const { supabase, vendor } = await getMyVendor();
   if (!vendor) return;
+  revalidatePath(`/${vendor.slug}`);
   await supabase.from("vendors").update({ accepting_orders: next }).eq("id", vendor.id);
   revalidatePath("/dashboard");
 }

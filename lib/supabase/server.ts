@@ -34,3 +34,14 @@ export function createAdminClient() {
     { auth: { persistSession: false } }
   );
 }
+
+// Cookie-free anon client for PUBLIC, cacheable reads (storefront). Touching
+// cookies opts a route into dynamic rendering and disables ISR caching, so the
+// public storefront reads through this client instead. Respects RLS public-read.
+export function createPublicClient() {
+  return createSb(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { auth: { persistSession: false } }
+  );
+}
