@@ -52,3 +52,17 @@ export function formatServiceDates(dates: string[]): string {
     return `${wk(g.start.t)}–${wk(g.end.t)} ${dateRange}`;
   }).join(" · ");
 }
+
+// ---- Menu scoping (Report) ----
+// When the report is filtered to a single menu, rows/amounts/CSV show only that
+// menu's slice of each order. MENU_NONE is the bucket key for unassigned items.
+export const MENU_NONE = "__unassigned__";
+
+export function menuItemsOf<T extends { service_snapshot: string | null }>(items: T[], menu: string): T[] {
+  if (menu === "all") return items;
+  return items.filter((it) => (it.service_snapshot ?? MENU_NONE) === menu);
+}
+
+export function menuPortion(items: { service_snapshot: string | null; price_snapshot: number; qty: number }[], menu: string): number {
+  return menuItemsOf(items, menu).reduce((sum, it) => sum + Number(it.price_snapshot) * Number(it.qty), 0);
+}

@@ -3,11 +3,10 @@
 import { useMemo, useState } from "react";
 import PendingButton from "@/components/PendingButton";
 import { setPaymentStatus } from "@/app/actions";
-import { money, ORDER_STATUS_LABEL } from "@/lib/format";
+import { money, ORDER_STATUS_LABEL, menuItemsOf, menuPortion } from "@/lib/format";
 import type { Order, OrderItem } from "@/lib/types";
 
 type Row = Order & { order_items: OrderItem[] };
-const MENU_NONE = "__unassigned__";
 
 const fmtTime = (iso: string) =>
   new Intl.DateTimeFormat("en-CA", { timeZone: "America/Toronto", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(iso));
@@ -82,13 +81,15 @@ export default function ReportTable({ rows, menu, menuLabel, breakdown, range, s
     const isLost = (s: string) => s === "declined" || s === "cancelled";
     let total = 0, unpaid = 0;
     for (const o of filtered) {
-      total += Number(o.subtotal_cad);
-      if (o.payment_status !== "paid" && !isLost(o.status)) unpaid += Number(o.subtotal_cad);
+      const amt = menu === "all" ? Number(o.subtotal_cad) : menuPortion(o.order_items, menu);
+      total += amt;
+      if (o.payment_status !== "paid" && !isLost(o.status)) unpaid += amt;
     }
     return { total, unpaid, count: filtered.length };
-  }, [filtered]);
+  }, [filtered, menu]);
 
-  const itemDim = (it: OrderItem) => menu !== "all" && (it.service_snapshot ?? MENU_NONE) !== menu;
+  const itemsOf = (o: Row) => menuItemsOf(o.order_items, menu);
+  const amountOf = (o: Row) => (menu === "all" ? Number(o.subtotal_cad) : menuPortion(o.order_items, menu));
 
   return (
     <div>
@@ -184,18 +185,24 @@ export default function ReportTable({ rows, menu, menuLabel, breakdown, range, s
                   {o.customer_address && <p className="text-ink/45">{o.customer_address}</p>}
                 </td>
                 <td className="px-4 py-3 text-ink/80">
-                  {o.order_items.map((it) => (
-                    <div key={it.id} className={itemDim(it) ? "opacity-40" : ""}>{it.qty} × {it.name_snapshot}{it.service_snapshot ? <span className="text-ink/40"> · {it.service_snapshot}</span> : null}</div>
+                  {itemsOf(o).map((it) => (
+                    <div key={it.id}>{it.qty} × {it.name_snapshot}{it.service_snapshot ? <span className="text-ink/40"> · {it.service_snapshot}</span> : null}</div>
                   ))}
                 </td>
-                <td className="px-4 py-3 text-right font-semibold text-ink whitespace-nowrap">{money(Number(o.subtotal_cad))}</td>
+                <td className="px-4 py-3 text-right font-semibold text-ink whitespace-nowrap">{money(amountOf(o))}</td>
                 <td className="px-4 py-3"><StatusBadge status={o.status} /></td>
                 <td className="px-4 py-3">
-                  <p className="text-ink/70">{o.payment_label ?? o.payment_method}</p>
-                  <div className="mt-1 flex items-center gap-2">
-                    <PayBadge paid={o.payment_status === "paid"} />
-                    <PayToggle id={o.id} paid={o.payment_status === "paid"} />
-                  </div>
+                  {o.status === "declined" || o.status === "cancelled" ? (
+                    <p className="text-ink/40">{o.payment_label ?? o.payment_method}</p>
+                  ) : (
+                    <>
+                      <p className="text-ink/70">{o.payment_label ?? o.payment_method}</p>
+                      <div className="mt-1 flex items-center gap-2">
+                        <PayBadge paid={o.payment_status === "paid"} />
+                        <PayToggle id={o.id} paid={o.payment_status === "paid"} />
+                      </div>
+                    </>
+                  )}
                 </td>
               </tr>
             ))}
@@ -218,8 +225,8 @@ export default function ReportTable({ rows, menu, menuLabel, breakdown, range, s
               <StatusBadge status={o.status} />
             </div>
             <div className="mt-2 border-t border-ink/5 pt-2 text-sm text-ink/80">
-              {o.order_items.map((it) => (
-                <div key={it.id} className={itemDim(it) ? "opacity-40" : ""}>{it.qty} × {it.name_snapshot}{it.service_snapshot ? <span className="text-ink/40"> · {it.service_snapshot}</span> : null}</div>
+              {itemsOf(o).map((it) => (
+                <div key={it.id}>{it.qty} × {it.name_snapshot}{it.service_snapshot ? <span className="text-ink/40"> · {it.service_snapshot}</span> : null}</div>
               ))}
             </div>
             <div className="mt-2 text-sm text-ink/60">
@@ -227,11 +234,13 @@ export default function ReportTable({ rows, menu, menuLabel, breakdown, range, s
               {o.customer_address && <p className="text-ink/45">{o.customer_address}</p>}
             </div>
             <div className="mt-3 flex items-center justify-between border-t border-ink/5 pt-3">
-              <span className="text-lg font-bold text-ink">{money(Number(o.subtotal_cad))}</span>
-              <div className="flex items-center gap-2">
-                <PayBadge paid={o.payment_status === "paid"} />
-                <PayToggle id={o.id} paid={o.payment_status === "paid"} />
-              </div>
+              <span className="text-lg font-bold text-ink">{money(amountOf(o))}</span>
+              {!(o.status === "declined" || o.status === "cancelled") && (
+                <div className="flex items-center gap-2">
+                  <PayBadge paid={o.payment_status === "paid"} />
+                  <PayToggle id={o.id} paid={o.payment_status === "paid"} />
+                </div>
+              )}
             </div>
             <p className="mt-1 text-right text-xs text-ink/40">{o.payment_label ?? o.payment_method}</p>
           </div>

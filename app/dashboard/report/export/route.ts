@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Order, OrderItem } from "@/lib/types";
+import { menuItemsOf, menuPortion } from "@/lib/format";
 
 type Row = Order & { order_items: OrderItem[] };
 
@@ -34,14 +35,15 @@ export async function GET(request: Request) {
     rows = rows.filter((o) => torontoDate(o.created_at) === t);
   }
   if (menu !== "all") {
-    const MENU_NONE = "__unassigned__";
-    rows = rows.filter((o) => o.order_items.some((it) => (it.service_snapshot ?? MENU_NONE) === menu));
+    rows = rows.filter((o) => menuItemsOf(o.order_items, menu).length > 0);
   }
 
   const header = ["Time", "Name", "Phone", "Email", "Fulfilment", "Address", "Items", "Amount (CAD)", "Order status", "Payment method", "Payment status"];
   const lines = [header.join(",")];
   for (const o of rows) {
-    const items = o.order_items.map((it) => `${it.qty}x ${it.name_snapshot}${it.service_snapshot ? ` (${it.service_snapshot})` : ""}`).join("; ");
+    const its = menuItemsOf(o.order_items, menu);
+    const items = its.map((it) => `${it.qty}x ${it.name_snapshot}${it.service_snapshot ? ` (${it.service_snapshot})` : ""}`).join("; ");
+    const amount = menu === "all" ? Number(o.subtotal_cad) : menuPortion(o.order_items, menu);
     lines.push([
       new Date(o.created_at).toISOString(),
       o.customer_name,
@@ -50,7 +52,7 @@ export async function GET(request: Request) {
       o.fulfilment,
       o.customer_address ?? "",
       items,
-      Number(o.subtotal_cad).toFixed(2),
+      amount.toFixed(2),
       o.status,
       o.payment_label ?? o.payment_method,
       o.payment_status,
