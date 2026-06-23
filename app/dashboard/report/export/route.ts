@@ -21,6 +21,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const range = searchParams.get("range") ?? "7d";
   const status = searchParams.get("status") ?? "all";
+  const menu = searchParams.get("menu") ?? "all";
 
   let q = supabase.from("orders").select("*, order_items(*)").eq("vendor_id", vendor.id).order("created_at", { ascending: false });
   if (status !== "all") q = q.eq("status", status);
@@ -31,6 +32,10 @@ export async function GET(request: Request) {
   if (range === "today") {
     const t = torontoDate(new Date());
     rows = rows.filter((o) => torontoDate(o.created_at) === t);
+  }
+  if (menu !== "all") {
+    const MENU_NONE = "__unassigned__";
+    rows = rows.filter((o) => o.order_items.some((it) => (it.service_snapshot ?? MENU_NONE) === menu));
   }
 
   const header = ["Time", "Name", "Phone", "Email", "Fulfilment", "Address", "Items", "Amount (CAD)", "Order status", "Payment method", "Payment status"];

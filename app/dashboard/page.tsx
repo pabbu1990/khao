@@ -3,14 +3,14 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import ShareLinkPanel from "@/components/ShareLinkPanel";
 import ShareLink from "@/components/ShareLink";
-import SubmitButton from "@/components/SubmitButton";
 import PendingButton from "@/components/PendingButton";
 import LiveStamp from "@/components/LiveStamp";
+import LiveOrders from "@/components/LiveOrders";
 import RecentOrderRow from "@/components/RecentOrderRow";
-import { updateOrderStatus, toggleAcceptingOrders } from "@/app/actions";
+import { toggleAcceptingOrders } from "@/app/actions";
 import OnboardingForm from "@/components/OnboardingForm";
-import { money, siteUrl, ORDER_STATUS_LABEL } from "@/lib/format";
-import type { Order, OrderItem, OrderStatus } from "@/lib/types";
+import { money, siteUrl } from "@/lib/format";
+import type { Order, OrderItem } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -127,7 +127,7 @@ export default async function Dashboard({ searchParams }: { searchParams: { done
         <div className="mt-4">
           <h2 className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-ink/40">Today</h2>
           <div className="grid grid-cols-3 gap-3">
-            <Stat label="Open orders" value={String(open.length)} />
+            <Stat label="Needs action" value={String(open.length)} accent={open.length > 0} />
             <Stat label="Today's orders" value={String(todayOrders)} />
             <Stat label="Today's revenue" value={money(todayRevenue)} />
           </div>
@@ -145,24 +145,26 @@ export default async function Dashboard({ searchParams }: { searchParams: { done
         )}
 
         <section className="mt-6">
-          <h2 className="mb-3 font-display text-xl font-bold text-ink">Live orders</h2>
           {open.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-line bg-white/60 py-10 text-center">
-              {(totalOrders ?? 0) === 0 ? (
-                <>
-                  <p className="font-medium text-ink/70">No orders yet</p>
-                  <p className="mt-1 text-sm text-ink/45">Share your ordering link to get your first order.</p>
-                  <div className="mx-auto mt-4 max-w-md px-4"><ShareLink link={link} /></div>
-                </>
-              ) : (
-                <>
-                  <p className="font-medium text-ink/70">No open orders right now</p>
-                  <p className="mt-1 text-sm text-ink/45">New orders appear here the moment a customer places one.</p>
-                </>
-              )}
-            </div>
+            <>
+              <h2 className="mb-3 font-display text-xl font-bold text-ink">Live orders</h2>
+              <div className="rounded-2xl border border-dashed border-line bg-white/60 py-10 text-center">
+                {(totalOrders ?? 0) === 0 ? (
+                  <>
+                    <p className="font-medium text-ink/70">No orders yet</p>
+                    <p className="mt-1 text-sm text-ink/45">Share your ordering link to get your first order.</p>
+                    <div className="mx-auto mt-4 max-w-md px-4"><ShareLink link={link} /></div>
+                  </>
+                ) : (
+                  <>
+                    <p className="font-medium text-ink/70">No open orders right now</p>
+                    <p className="mt-1 text-sm text-ink/45">New orders appear here the moment a customer places one.</p>
+                  </>
+                )}
+              </div>
+            </>
           ) : (
-            <div className="space-y-3">{open.map((o) => <OrderCard key={o.id} o={o} />)}</div>
+            <LiveOrders orders={open} />
           )}
         </section>
 
@@ -233,53 +235,11 @@ function SetupStep({ n, done, active, locked, title, desc, cta, href }: { n: num
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className="rounded-xl bg-white px-4 py-3 shadow-card">
+    <div className={`rounded-xl bg-white px-4 py-3 shadow-card ${accent ? "border border-spice" : ""}`}>
       <p className="text-2xl font-bold leading-tight text-ink">{value}</p>
       <p className="mt-0.5 text-xs text-ink/50">{label}</p>
     </div>
   );
 }
-
-function OrderCard({ o }: { o: OrderRow }) {
-  const next: { label: string; status: OrderStatus; primary?: boolean }[] =
-    ["placed", "accepted", "ready"].includes(o.status)
-      ? [{ label: "Complete", status: "completed", primary: true }, { label: "Decline", status: "declined" }]
-      : [];
-  const badge = o.status === "placed" ? "bg-spice/15 text-spice" : o.status === "ready" ? "bg-curry/15 text-curry" : "bg-ink/10 text-ink/60";
-
-  return (
-    <div className="rounded-2xl bg-white p-4 shadow-card ring-1 ring-ink/[0.03]">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="font-semibold text-ink">{o.customer_name} <span className="font-normal text-ink/40">· {o.customer_phone}</span></p>
-          <p className="mt-0.5 text-sm capitalize text-ink/50">
-            {o.fulfilment}{o.requested_time ? ` · ${o.requested_time}` : ""} · {o.payment_label ?? (o.payment_method === "online" ? "Paid online" : "Pay direct")}
-          </p>
-          {o.customer_address && <p className="text-sm text-ink/50">{o.customer_address}</p>}
-        </div>
-        <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${badge}`}>{ORDER_STATUS_LABEL[o.status]}</span>
-      </div>
-
-      <ul className="mt-3 space-y-0.5 text-sm text-ink/80">
-        {o.order_items.map((it) => (
-          <li key={it.id}>{it.qty} × {it.name_snapshot}{it.service_snapshot && <span className="text-ink/40"> · {it.service_snapshot}</span>}</li>
-        ))}
-      </ul>
-      {o.customer_note && <p className="mt-2 rounded-lg bg-panel px-3 py-2 text-sm italic text-ink/60">&ldquo;{o.customer_note}&rdquo;</p>}
-
-      <div className="mt-4 flex items-center justify-between border-t border-line pt-3">
-        <span className="text-lg font-bold text-ink">{money(Number(o.subtotal_cad))}</span>
-        <div className="flex gap-2">
-          {next.map((n) => (
-            <form key={n.status} action={updateOrderStatus.bind(null, o.id, n.status)}>
-              <SubmitButton className={`rounded-xl px-5 py-2.5 text-sm font-semibold transition ${n.primary ? "bg-spice text-ink hover:brightness-[1.04]" : "border border-line text-ink/60 hover:border-ink/25"}`}>{n.label}</SubmitButton>
-            </form>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-

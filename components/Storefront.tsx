@@ -148,6 +148,12 @@ export default function Storefront({ vendor, groups }: { vendor: Vendor; groups:
             {allDishes.length === 0 && (
               <p className="rounded-2xl bg-white py-12 text-center text-ink/50 shadow-card">No dishes available right now.</p>
             )}
+            {allDishes.length > 0 && (
+              <div className="flex items-center gap-4 text-xs font-medium text-ink/50">
+                <span className="inline-flex items-center gap-1.5"><svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="2.5" fill="none" stroke="#3E7A4E" strokeWidth="1.8" /><circle cx="8" cy="8" r="3" fill="#3E7A4E" /></svg> Veg</span>
+                <span className="inline-flex items-center gap-1.5"><svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="2.5" fill="none" stroke="#C0392B" strokeWidth="1.8" /><circle cx="8" cy="8" r="3" fill="#C0392B" /></svg> Non-veg</span>
+              </div>
+            )}
             {groups.map((g) => (
               <div key={g.service.id}>
                 <div className="flex items-center gap-3">
@@ -158,7 +164,7 @@ export default function Storefront({ vendor, groups }: { vendor: Vendor; groups:
                 {g.service.description && <p className="mt-1 text-sm text-ink/50">{g.service.description}</p>}
                 <div className="mt-3 space-y-3">
                   {g.dishes.map((d) => (
-                    <div key={d.id} className="flex items-center gap-4 rounded-2xl bg-white p-3.5 shadow-card ring-1 ring-ink/[0.04] transition duration-200 hover:shadow-pop">
+                    <div key={d.id} className={`flex items-center gap-4 rounded-2xl bg-white p-3.5 shadow-card ring-1 ring-ink/[0.04] transition duration-200 hover:shadow-pop ${d.is_sold_out ? "opacity-60" : ""}`}>
                       <div className="h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-panel ring-1 ring-ink/5">
                         {(d.photo_url || vendor.logo_url) ? (
                           // eslint-disable-next-line @next/next/no-img-element
@@ -203,6 +209,36 @@ export default function Storefront({ vendor, groups }: { vendor: Vendor; groups:
           </section>
         ) : (
           <form onSubmit={submit} className="mt-7 space-y-5 rounded-2xl bg-white p-6 shadow-card ring-1 ring-ink/[0.04]">
+            <div>
+              <h2 className="font-display text-2xl font-semibold text-ink">Your order</h2>
+              {lines.length === 0 ? (
+                <p className="mt-2 text-sm text-ink/50">Your cart is empty — go back and add a dish.</p>
+              ) : (
+                <>
+                  <div className="mt-3 space-y-2.5">
+                    {lines.map((l) => (
+                      <div key={l.dish.id} className="flex items-center gap-3">
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-semibold text-ink">{l.dish.name}</p>
+                          <p className="text-xs text-ink/45">{money(Number(l.dish.price_cad))} each</p>
+                        </div>
+                        <div className="flex items-center gap-1 rounded-lg bg-spice/12 p-0.5 ring-1 ring-spice/20">
+                          <button type="button" aria-label="Remove one" onClick={() => set(l.dish.id, -1)} className="grid h-7 w-7 place-items-center rounded-md text-lg font-bold text-spice transition hover:bg-spice/15">−</button>
+                          <span className="w-5 text-center text-sm font-semibold tabular-nums">{l.qty}</span>
+                          <button type="button" aria-label="Add one" onClick={() => set(l.dish.id, +1)} className="grid h-7 w-7 place-items-center rounded-md text-lg font-bold text-spice transition hover:bg-spice/15">+</button>
+                        </div>
+                        <span className="w-16 text-right text-sm font-semibold text-ink">{money(Number(l.dish.price_cad) * l.qty)}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-3 flex items-center justify-between border-t border-line pt-3">
+                    <span className="text-sm text-ink/60">Subtotal</span>
+                    <span className="font-bold text-ink">{money(subtotal)}</span>
+                  </div>
+                </>
+              )}
+            </div>
+            <hr className="border-ink/10" />
             <h2 className="font-display text-2xl font-semibold text-ink">Your details</h2>
             <Field label="Name" required value={form.name} onChange={(v) => setForm({ ...form, name: v })} />
             <div>
@@ -246,6 +282,7 @@ export default function Storefront({ vendor, groups }: { vendor: Vendor; groups:
             {form.fulfilment === "delivery" && (
               <Field label="Delivery address" required value={form.address} onChange={(v) => setForm({ ...form, address: v })} />
             )}
+            <Field label="Preferred time (optional)" value={form.requestedTime} onChange={(v) => setForm({ ...form, requestedTime: v })} />
             <Field label="Notes (optional)" value={form.note} onChange={(v) => setForm({ ...form, note: v })} />
 
             <div>
@@ -269,7 +306,7 @@ export default function Storefront({ vendor, groups }: { vendor: Vendor; groups:
             {err && <p className="text-sm font-medium text-chili">{err}</p>}
             <div className="flex gap-2 pt-1">
               <button type="button" onClick={() => setCheckout(false)} className="rounded-xl border border-line px-5 py-3 font-semibold text-ink/60 transition hover:border-ink/20">Back</button>
-              <button disabled={submitting} className="flex-1 rounded-xl bg-spice px-4 py-3 font-semibold text-ink shadow-sm transition hover:brightness-[1.04] active:scale-[.99] disabled:opacity-60">
+              <button disabled={submitting || count === 0} className="flex-1 rounded-xl bg-spice px-4 py-3 font-semibold text-ink shadow-sm transition hover:brightness-[1.04] active:scale-[.99] disabled:opacity-60">
                 {submitting ? <span className="inline-flex items-center gap-2"><Spinner />Placing…</span> : `Place order · ${money(subtotal)}`}
               </button>
             </div>

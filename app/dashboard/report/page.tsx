@@ -1,12 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import PendingButton from "@/components/PendingButton";
 import RealtimeRefresh from "@/components/RealtimeRefresh";
 import LiveStamp from "@/components/LiveStamp";
 import ReportFilterMemory from "@/components/ReportFilterMemory";
 import ReportFilters from "@/components/ReportFilters";
-import { setPaymentStatus } from "@/app/actions";
-import { money, ORDER_STATUS_LABEL } from "@/lib/format";
+import ReportTable from "@/components/ReportTable";
 import type { Order, OrderItem } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -27,10 +25,8 @@ const STATUSES = [
 
 const torontoDate = (iso: string | Date) =>
   new Intl.DateTimeFormat("en-CA", { timeZone: "America/Toronto" }).format(new Date(iso));
-const fmtTime = (iso: string) =>
-  new Intl.DateTimeFormat("en-CA", { timeZone: "America/Toronto", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(iso));
 
-export default async function ReportPage({ searchParams }: { searchParams: { range?: string; status?: string } }) {
+export default async function ReportPage({ searchParams }: { searchParams: { range?: string; status?: string; menu?: string } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
@@ -39,6 +35,7 @@ export default async function ReportPage({ searchParams }: { searchParams: { ran
 
   const range = searchParams.range ?? "7d";
   const status = searchParams.status ?? "all";
+  const menu = searchParams.menu ?? "all";
 
   let q = supabase.from("orders").select("*, order_items(*)").eq("vendor_id", vendor.id).order("created_at", { ascending: false });
   if (status !== "all") q = q.eq("status", status);
@@ -51,7 +48,30 @@ export default async function ReportPage({ searchParams }: { searchParams: { ran
     rows = rows.filter((o) => torontoDate(o.created_at) === t);
   }
 
-  const total = rows.reduce((s, o) => s + Number(o.subtotal_cad), 0);
+  const MENU_NONE = "__unassigned__";
+  // Menu options + item-level breakdown, computed BEFORE the menu filter so the
+  // dropdown and the breakdown always show every menu in the current range/status.
+  const menuMap = new Map<string, string>();
+  const breakdownMap = new Map<string, { label: string; qty: number; revenue: number }>();
+  for (const o of rows) {
+    for (const it of o.order_items) {
+      const key = it.service_snapshot ?? MENU_NONE;
+      const label = it.service_snapshot ?? "Unassigned";
+      menuMap.set(key, label);
+      const cur = breakdownMap.get(key) ?? { label, qty: 0, revenue: 0 };
+      cur.qty += Number(it.qty);
+      cur.revenue += Number(it.price_snapshot) * Number(it.qty);
+      breakdownMap.set(key, cur);
+    }
+  }
+  const menus = [...menuMap.entries()].map(([key, label]) => ({ key, label })).sort((a, b) => a.label.localeCompare(b.label));
+  const breakdown = [...breakdownMap.entries()].map(([key, v]) => ({ key, ...v })).sort((a, b) => b.revenue - a.revenue);
+
+  // Menu filter is order-level "contains": an order shows if it has any item in the menu.
+  const inMenu = (it: Row["order_items"][number]) => (it.service_snapshot ?? MENU_NONE) === menu;
+  const viewRows = menu === "all" ? rows : rows.filter((o) => o.order_items.some(inMenu));
+  const selectedMenuLabel = menuMap.get(menu);
+
   return (
     <main className="min-h-screen bg-cream">
       <RealtimeRefresh vendorId={vendor.id} tables={["orders"]} />
@@ -61,74 +81,16 @@ export default async function ReportPage({ searchParams }: { searchParams: { ran
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="font-display text-2xl font-bold text-ink">Order report</h1>
           <a
-            href={`/dashboard/report/export?range=${range}&status=${status}`}
-            className="rounded-lg bg-ink px-4 py-2 text-sm font-semibold text-cream"
+            href={`/dashboard/report/export?range=${range}&status=${status}&menu=${menu}`}
+            className="rounded-lg bg-ink px-4 py-2 text-sm font-semibold text-cream transition hover:bg-ink/90"
           >
             Export CSV
           </a>
         </div>
 
-        <ReportFilters range={range} status={status} ranges={RANGES} statuses={STATUSES} />
+        <ReportFilters range={range} status={status} menu={menu} ranges={RANGES} statuses={STATUSES} menus={menus} />
 
-        <p className="mt-3 text-sm text-ink/60">{rows.length} order{rows.length === 1 ? "" : "s"} · {money(total)} total</p>
-
-        <div className="mt-3 overflow-x-auto rounded-xl bg-white shadow-card">
-          <table className="w-full min-w-[1050px] text-sm">
-            <thead className="bg-panel text-ink/60">
-              <tr>
-                <th className="p-3 text-left">Time</th>
-                <th className="p-3 text-left">Customer</th>
-                <th className="p-3 text-left">Contact</th>
-                <th className="p-3 text-left">Address</th>
-                <th className="p-3 text-left">Items</th>
-                <th className="p-3 text-right">Amount</th>
-                <th className="p-3 text-left">Order</th>
-                <th className="p-3 text-left">Payment</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.length === 0 && (
-                <tr><td colSpan={8} className="p-6 text-center text-ink/40">No orders for this filter.</td></tr>
-              )}
-              {rows.map((o) => (
-                <tr key={o.id} className="border-t border-ink/5 align-top">
-                  <td className="p-3 whitespace-nowrap text-ink/70">{fmtTime(o.created_at)}</td>
-                  <td className="p-3">
-                    <p className="font-semibold text-ink">{o.customer_name}</p>
-                    <p className="text-ink/50 capitalize">{o.fulfilment}</p>
-                  </td>
-                  <td className="p-3 text-ink/70">
-                    <p>{o.customer_phone}</p>
-                    {o.customer_email && <p className="text-ink/50">{o.customer_email}</p>}
-                  </td>
-                  <td className="p-3 text-ink/60">{o.customer_address || "—"}</td>
-                  <td className="p-3 text-ink/80">
-                    {o.order_items.map((it) => (
-                      <div key={it.id}>{it.qty} × {it.name_snapshot}{it.service_snapshot ? <span className="text-ink/40"> · {it.service_snapshot}</span> : null}</div>
-                    ))}
-                  </td>
-                  <td className="p-3 text-right font-semibold text-ink whitespace-nowrap">{money(Number(o.subtotal_cad))}</td>
-                  <td className="p-3">
-                    <span className="rounded-full bg-spice/15 px-2 py-0.5 text-xs font-semibold text-ink">{ORDER_STATUS_LABEL[o.status] ?? o.status}</span>
-                  </td>
-                  <td className="p-3">
-                    <p className="text-ink/70">{o.payment_label ?? o.payment_method}</p>
-                    <div className="mt-1 flex items-center gap-2">
-                      <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${o.payment_status === "paid" ? "bg-curry/15 text-curry" : "bg-chili/15 text-chili"}`}>
-                        {o.payment_status === "paid" ? "Paid" : "Unpaid"}
-                      </span>
-                      <form action={setPaymentStatus.bind(null, o.id, o.payment_status === "paid" ? "unpaid" : "paid")}>
-                        <PendingButton className="rounded-md border border-line px-2.5 py-1 text-xs font-semibold text-ink/70 transition hover:bg-panel">
-                          {o.payment_status === "paid" ? "Mark unpaid" : "Mark paid"}
-                        </PendingButton>
-                      </form>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <ReportTable rows={viewRows} menu={menu} menuLabel={selectedMenuLabel} breakdown={breakdown} range={range} status={status} />
       </div>
     </main>
   );

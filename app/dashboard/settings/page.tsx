@@ -18,22 +18,31 @@ export default async function SettingsPage() {
 
   return (
     <main className="min-h-screen bg-cream">
-      <div className="mx-auto max-w-2xl px-4 py-5">
+      <div className="mx-auto max-w-2xl px-4 py-6">
         <h1 className="font-display text-2xl font-bold text-ink">Settings</h1>
+        <p className="mt-1 text-sm text-ink/50">Manage your kitchen profile, ordering link, and payment options.</p>
 
-        <div className="mt-3 rounded-xl bg-white p-4 shadow-card">
-          <p className="mb-2 text-sm text-ink/60">Your ordering link — share this in WhatsApp</p>
+        <Section title="Ordering link" desc="Share this with customers in WhatsApp — every order lands on your dashboard.">
           <ShareLink link={link} />
-        </div>
+        </Section>
 
-        <div className="mt-4 rounded-xl bg-white p-4 shadow-card">
-          <p className="mb-3 text-sm font-semibold text-ink/70">Kitchen logo</p>
+        <Section title="Kitchen logo" desc="Shows on your page, and on dishes that don't have their own photo.">
           <LogoUpload vendorId={vendor.id} current={vendor.logo_url} />
-        </div>
+        </Section>
 
         <SettingsForm vendor={vendor} />
       </div>
-      <style>{`.inp{width:100%;border:1px solid rgba(42,24,16,.15);border-radius:.5rem;padding:.5rem .75rem}`}</style>
+      <style>{`.inp{width:100%;background:#fff;border:1px solid rgba(42,24,16,.15);border-radius:.625rem;padding:.6rem .8rem;font-size:.95rem;color:#2A1810;transition:border-color .15s,box-shadow .15s}.inp:hover{border-color:rgba(42,24,16,.28)}.inp:focus{outline:none;border-color:#E0922F;box-shadow:0 0 0 3px rgba(224,146,47,.18)}.inp::placeholder{color:rgba(42,24,16,.38)}`}</style>
     </main>
+  );
+}
+
+function Section({ title, desc, children }: { title: string; desc?: string; children: React.ReactNode }) {
+  return (
+    <section className="mt-4 rounded-2xl border border-line bg-white p-4 shadow-card">
+      <h2 className="text-xs font-semibold uppercase tracking-[0.07em] text-ink/45">{title}</h2>
+      {desc && <p className="mt-0.5 text-sm text-ink/55">{desc}</p>}
+      <div className="mt-3">{children}</div>
+    </section>
   );
 }

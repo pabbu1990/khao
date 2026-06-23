@@ -85,7 +85,7 @@ export default async function MenuPage() {
               <AddDishForm vendorId={vendor.id} services={serviceOpts} onboarding={dishes.length === 0} />
             </div>
 
-            <h2 className="mt-6 font-display text-lg font-bold text-ink">Your menus</h2>
+            <h2 className="mt-6 font-display text-lg font-bold text-ink">Your menus <span className="text-sm font-normal text-ink/40">· {services.length} {services.length === 1 ? "menu" : "menus"} · {dishes.length} {dishes.length === 1 ? "dish" : "dishes"}{dishes.filter((d) => d.is_sold_out).length > 0 ? ` · ${dishes.filter((d) => d.is_sold_out).length} sold out` : ""}</span></h2>
 
             {services.map((s) => {
               const list = byService.get(s.id) ?? [];
