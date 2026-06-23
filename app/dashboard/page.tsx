@@ -31,7 +31,7 @@ export default async function Dashboard({ searchParams }: { searchParams: { done
   // Open orders: all of them (never capped) so a busy kitchen can't lose one.
   const { data: openData } = await supabase
     .from("orders").select("*, order_items(*)").eq("vendor_id", vendor.id)
-    .in("status", ["placed", "accepted", "ready"]).order("created_at", { ascending: false }).limit(500);
+    .in("status", ["placed", "accepted", "ready"]).order("created_at", { ascending: true }).limit(500);
   const open = (openData ?? []) as OrderRow[];
 
   // Recent window (48h) for today's stats + the "Recent · today" list.
