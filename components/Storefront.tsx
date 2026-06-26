@@ -218,8 +218,8 @@ export default function Storefront({ vendor, groups }: { vendor: Vendor; groups:
               {q && visibleGroups.length === 0 && (
                 <p className="py-10 text-center text-sm text-ink/45">No dishes match &ldquo;{query}&rdquo;.</p>
               )}
-              {visibleGroups.map((g) => (
-                <div key={g.service.id} id={`sec-${g.service.id}`} className="scroll-mt-28 pt-6 first:pt-3">
+              {visibleGroups.map((g, gi) => (
+                <div key={g.service.id} id={`sec-${g.service.id}`} className={`scroll-mt-28 ${gi === 0 ? "pt-3" : "mt-7 border-t-[1.5px] border-[#E6D9C2] pt-6"}`}>
                   <div className="flex flex-wrap items-center gap-2.5">
                     <h2 className="font-display text-xl font-bold uppercase tracking-wide text-ink">{g.service.name}</h2>
                     {g.service.dates.length > 0 && <span className="rounded-full bg-panel px-2.5 py-0.5 text-xs font-semibold text-ink/60">{formatServiceDates(g.service.dates)}</span>}
@@ -227,7 +227,7 @@ export default function Storefront({ vendor, groups }: { vendor: Vendor; groups:
                   {g.service.description && <p className="mt-1 text-sm text-ink/50">{g.service.description}</p>}
                   <div className="mt-2">
                     {g.dishes.map((d) => (
-                      <div key={d.id} className={`flex items-center gap-3 border-t border-line py-3 ${d.is_sold_out ? "opacity-55" : ""}`}>
+                      <div key={d.id} className={`relative flex items-center gap-3 py-3 before:absolute before:left-[4.75rem] before:right-0 before:top-0 before:h-px before:bg-[#F1E9DA] first:before:hidden ${d.is_sold_out ? "opacity-55" : ""}`}>
                         <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-panel ring-1 ring-ink/5">
                           {(d.photo_url || vendor.logo_url) ? (
                             // eslint-disable-next-line @next/next/no-img-element
