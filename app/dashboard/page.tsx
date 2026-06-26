@@ -126,7 +126,7 @@ export default async function Dashboard({ searchParams }: { searchParams: { done
 
         <div className="mt-4">
           <h2 className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-ink/40">Today</h2>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3 sm:gap-3">
             <Stat label="Needs action" value={String(open.length)} accent={open.length > 0} />
             <Stat label="Today's orders" value={String(todayOrders)} />
             <Stat label="Today's revenue" value={money(todayRevenue)} />
@@ -243,9 +243,9 @@ function SetupStep({ n, done, active, locked, title, desc, cta, href }: { n: num
 
 function Stat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className={`rounded-xl bg-white px-4 py-3 shadow-card ${accent ? "border border-spice" : ""}`}>
-      <p className="text-2xl font-bold leading-tight text-ink">{value}</p>
-      <p className="mt-0.5 text-xs text-ink/50">{label}</p>
+    <div className={`flex items-center justify-between gap-3 rounded-xl bg-white px-4 py-3 shadow-card sm:block ${accent ? "border border-spice" : ""}`}>
+      <p className="text-xl font-bold leading-tight text-ink sm:text-2xl">{value}</p>
+      <p className="text-xs text-ink/50 sm:mt-0.5">{label}</p>
     </div>
   );
 }

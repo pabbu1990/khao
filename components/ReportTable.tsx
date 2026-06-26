@@ -52,10 +52,12 @@ function PayToggle({ id, paid }: { id: string; paid: boolean }) {
 
 function Kpi({ label, value, accent, sub }: { label: string; value: string; accent?: boolean; sub?: string }) {
   return (
-    <div className="rounded-xl bg-white px-4 py-3 shadow-card">
+    <div className="flex items-center justify-between gap-3 rounded-xl bg-white px-4 py-3 shadow-card sm:block">
       <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-ink/45">{label}</p>
-      <p className={`mt-0.5 text-2xl font-bold leading-tight ${accent ? "text-chili" : "text-ink"}`}>{value}</p>
-      {sub && <p className="text-xs text-ink/45">{sub}</p>}
+      <div className="text-right sm:mt-0.5 sm:text-left">
+        <p className={`text-xl font-bold leading-tight sm:text-2xl ${accent ? "text-chili" : "text-ink"}`}>{value}</p>
+        {sub && <p className="text-xs text-ink/45">{sub}</p>}
+      </div>
     </div>
   );
 }
@@ -93,7 +95,7 @@ export default function ReportTable({ rows, menu, menuLabel, breakdown, range, s
 
   return (
     <div>
-      <div className="mt-4 grid grid-cols-3 gap-3">
+      <div className="mt-4 grid grid-cols-1 gap-2.5 sm:grid-cols-3 sm:gap-3">
         <Kpi label="Orders" value={String(kpis.count)} />
         <Kpi label="Total" value={money(kpis.total)} />
         <Kpi label="Unpaid" value={money(kpis.unpaid)} accent={kpis.unpaid > 0} sub={kpis.unpaid > 0 ? "owed to you" : "all collected"} />
