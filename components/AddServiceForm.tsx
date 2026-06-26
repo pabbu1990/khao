@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { addService } from "@/app/actions";
 import MultiDateField from "@/components/MultiDateField";
 
-export default function AddServiceForm({ onAdded }: { onAdded?: () => void }) {
+export default function AddServiceForm({ onAdded }: { onAdded?: (name: string) => void }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -29,7 +29,7 @@ export default function AddServiceForm({ onAdded }: { onAdded?: () => void }) {
     if (res?.ok) {
       setName("");
       setFormKey((k) => k + 1); // remount to clear fields + date chips
-      if (onAdded) onAdded(); else setMsg({ ok: true, text: "Menu added." });
+      if (onAdded) onAdded(name); else setMsg({ ok: true, text: "Menu added." });
       router.refresh();
     } else {
       setMsg({ ok: false, text: res?.error || "Couldn't add the menu. Please try again." });

@@ -1,25 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import AddServiceForm from "@/components/AddServiceForm";
 
 // Renders the Menus page header (title + subtitle) with the "Add a menu" control
-// inline, and the add-menu form expanding full-width below when opened. After a
-// menu is added the form collapses and a success message shows.
+// inline, and the add-menu form expanding full-width below when opened.
+// On the FIRST menu (defaultOpen first-run) we route to ?firstmenu=... so the
+// menu page shows the celebration modal. Subsequent adds just collapse — the new
+// menu appears in the list below as confirmation.
 export default function AddSectionPanel({ defaultOpen = false, subtitle }: { defaultOpen?: boolean; subtitle: string }) {
+  const router = useRouter();
   const [open, setOpen] = useState(defaultOpen);
-  const [added, setAdded] = useState(false);
 
-  useEffect(() => {
-    if (added) {
-      const t = setTimeout(() => setAdded(false), 4000);
-      return () => clearTimeout(t);
-    }
-  }, [added]);
-
-  function handleAdded() {
+  function handleAdded(name: string) {
     setOpen(false);
-    setAdded(true);
+    if (defaultOpen) {
+      router.push(`/dashboard/menu?firstmenu=${encodeURIComponent(name || "Your menu")}`);
+    }
   }
 
   return (
@@ -36,12 +34,6 @@ export default function AddSectionPanel({ defaultOpen = false, subtitle }: { def
           </button>
         )}
       </div>
-
-      {added && !open && (
-        <div className="mt-3 flex items-center gap-2 rounded-xl border border-curry/30 bg-curry/[0.06] px-4 py-2.5 text-sm font-medium text-curry">
-          <span aria-hidden="true">✓</span> Menu added — add another, or add dishes to it below.
-        </div>
-      )}
 
       {open && (
         <div className="relative mt-4">

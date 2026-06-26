@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import RealtimeRefresh from "@/components/RealtimeRefresh";
 import LiveStamp from "@/components/LiveStamp";
 import AddDishForm from "@/components/AddDishForm";
+import FirstMenuCelebration from "@/components/FirstMenuCelebration";
 import AddSectionPanel from "@/components/AddSectionPanel";
 import MenuDishRow from "@/components/MenuDishRow";
 import MenuServiceSection from "@/components/MenuServiceSection";
@@ -16,7 +17,7 @@ export const dynamic = "force-dynamic";
 const torontoDate = (iso: string | Date) =>
   new Intl.DateTimeFormat("en-CA", { timeZone: "America/Toronto" }).format(new Date(iso));
 
-export default async function MenuPage() {
+export default async function MenuPage({ searchParams }: { searchParams: { firstmenu?: string } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
@@ -72,6 +73,7 @@ export default async function MenuPage() {
   return (
     <main className="min-h-screen bg-cream">
       <RealtimeRefresh vendorId={vendor.id} tables={["orders", "dishes", "services"]} />
+      {searchParams.firstmenu && dishes.length === 0 && <FirstMenuCelebration menuName={searchParams.firstmenu} />}
       <div className="px-5 pt-2"><LiveStamp at={Date.now()} /></div>
       <div className="mx-auto max-w-3xl px-4 py-5">
 
@@ -81,7 +83,7 @@ export default async function MenuPage() {
           <>
             <AddSectionPanel subtitle="Your menus & dishes · counts reset daily (ET)" />
 
-            <div className="mt-4">
+            <div id="add-dish" className="mt-4">
               <AddDishForm vendorId={vendor.id} services={serviceOpts} onboarding={dishes.length === 0} />
             </div>
 
