@@ -54,7 +54,7 @@ export default function LiveOrderCard({ o, compact }: { o: OrderRow; compact: bo
 
   const declineForm = (cls: string) => (
     <form action={updateOrderStatus.bind(null, o.id, "declined")}>
-      <ConfirmSubmitButton confirmText={`Decline this order from ${o.customer_name}? You can't undo this.`} className={cls}>Decline</ConfirmSubmitButton>
+      <ConfirmSubmitButton title="Decline this order?" confirmText={`Decline ${o.customer_name}'s order? This can't be undone.`} confirmLabel="Decline order" className={cls}>Decline</ConfirmSubmitButton>
     </form>
   );
   const completeForm = (cls: string) => (

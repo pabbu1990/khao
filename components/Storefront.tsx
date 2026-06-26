@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Spinner from "@/components/Spinner";
 import { useRouter } from "next/navigation";
 import type { Dish, Vendor, Fulfilment } from "@/lib/types";
@@ -59,6 +59,10 @@ export default function Storefront({ vendor, groups }: { vendor: Vendor; groups:
   });
   const [errors, setErrors] = useState({ phone: "", email: "" });
   const [touched, setTouched] = useState({ phone: false, email: false });
+  const [query, setQuery] = useState("");
+  const [activeId, setActiveId] = useState(groups[0]?.service.id ?? "");
+  const [summaryOpen, setSummaryOpen] = useState(false);
+  const [noteOpen, setNoteOpen] = useState(false);
 
   const lines = useMemo(
     () => allDishes.filter((d) => cart[d.id] > 0).map((d) => ({ dish: d, qty: cart[d.id] })),
@@ -66,6 +70,47 @@ export default function Storefront({ vendor, groups }: { vendor: Vendor; groups:
   );
   const subtotal = lines.reduce((s, l) => s + Number(l.dish.price_cad) * l.qty, 0);
   const count = lines.reduce((s, l) => s + l.qty, 0);
+
+  const q = query.trim().toLowerCase();
+  const showNav = groups.length > 1 || allDishes.length >= 8;
+  const visibleGroups = useMemo(() => {
+    if (!q) return groups;
+    return groups
+      .map((g) => ({ ...g, dishes: g.dishes.filter((d) => d.name.toLowerCase().includes(q) || (d.description ?? "").toLowerCase().includes(q)) }))
+      .filter((g) => g.dishes.length > 0);
+  }, [groups, q]);
+  // Briefly ignore scrollspy right after a tab click so the programmatic scroll
+  // doesn't flicker the active tab through intermediate sections.
+  const navLock = useRef(0);
+  const barRef = useRef<HTMLDivElement>(null);
+  const scrollToSection = (id: string) => {
+    setActiveId(id);
+    navLock.current = Date.now() + 800;
+    const el = document.getElementById(`sec-${id}`);
+    if (!el) return;
+    // Land the section header just under the sticky bar (measured, so it's exact).
+    const barH = barRef.current?.offsetHeight ?? 96;
+    const y = window.scrollY + el.getBoundingClientRect().top - barH - 4;
+    window.scrollTo({ top: y, behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    if (q || !showNav || checkout) return;
+    const els = groups.map((g) => document.getElementById(`sec-${g.service.id}`)).filter(Boolean) as HTMLElement[];
+    if (!els.length) return;
+    const seen = new Set<string>();   // all currently-intersecting sections (kept across callbacks)
+    const obs = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        const id = e.target.id.replace("sec-", "");
+        if (e.isIntersecting) seen.add(id); else seen.delete(id);
+      }
+      if (Date.now() < navLock.current) return;
+      const first = groups.find((g) => seen.has(g.service.id)); // topmost visible, in menu order
+      if (first) setActiveId(first.service.id);
+    }, { rootMargin: "-120px 0px -68% 0px" });
+    els.forEach((el) => obs.observe(el));
+    return () => obs.disconnect();
+  }, [groups, q, showNav, checkout]);
 
   function set(id: string, delta: number) {
     setCart((c) => {
@@ -109,7 +154,7 @@ export default function Storefront({ vendor, groups }: { vendor: Vendor; groups:
   const closed = !vendor.accepting_orders;
 
   return (
-    <main className="min-h-screen bg-cream pb-32">
+    <main className="min-h-screen bg-white pb-32">
       <MenuRefresher vendorId={vendor.id} intervalMs={15000} />
 
       <header className="relative overflow-hidden rounded-b-[2rem] bg-ink px-6 pt-12 pb-9 text-cream shadow-pop">
@@ -144,172 +189,196 @@ export default function Storefront({ vendor, groups }: { vendor: Vendor; groups:
 
       <div className="mx-auto max-w-2xl px-4">
         {!checkout ? (
-          <section className="mt-7 space-y-8">
-            {allDishes.length === 0 && (
-              <p className="rounded-2xl bg-white py-12 text-center text-ink/50 shadow-card">No dishes available right now.</p>
-            )}
-            {allDishes.length > 0 && (
-              <div className="flex items-center gap-4 text-xs font-medium text-ink/50">
-                <span className="inline-flex items-center gap-1.5"><svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="2.5" fill="none" stroke="#3E7A4E" strokeWidth="1.8" /><circle cx="8" cy="8" r="3" fill="#3E7A4E" /></svg> Veg</span>
-                <span className="inline-flex items-center gap-1.5"><svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="2.5" fill="none" stroke="#C0392B" strokeWidth="1.8" /><circle cx="8" cy="8" r="3" fill="#C0392B" /></svg> Non-veg</span>
-              </div>
-            )}
-            {groups.map((g) => (
-              <div key={g.service.id}>
-                <div className="flex items-center gap-3">
-                  <h2 className="font-display text-2xl font-semibold uppercase text-ink">{g.service.name}</h2>
-                  {g.service.dates.length > 0 && <span className="rounded-full bg-panel px-2.5 py-0.5 text-xs font-semibold text-ink/60">{formatServiceDates(g.service.dates)}</span>}
-                  <span className="h-px flex-1 bg-line" />
+          <>
+            {showNav && (
+              <div ref={barRef} className="sticky top-0 z-30 -mx-4 border-b border-line bg-white px-4 pt-3 shadow-[0_4px_10px_-7px_rgba(42,24,16,0.25)]">
+                <div className="relative">
+                  <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/35" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7" /><path d="m20 20-3-3" /></svg>
+                  <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search the menu…" className="w-full rounded-xl bg-panel py-2.5 pl-9 pr-8 text-sm text-ink placeholder:text-ink/40 outline-none focus:ring-2 focus:ring-spice/25" />
+                  {query && <button onClick={() => setQuery("")} aria-label="Clear search" className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-ink/40 transition hover:text-ink">✕</button>}
                 </div>
-                {g.service.description && <p className="mt-1 text-sm text-ink/50">{g.service.description}</p>}
-                <div className="mt-3 space-y-3">
-                  {g.dishes.map((d) => (
-                    <div key={d.id} className={`flex items-center gap-4 rounded-2xl bg-white p-3.5 shadow-card ring-1 ring-ink/[0.04] transition duration-200 hover:shadow-pop ${d.is_sold_out ? "opacity-60" : ""}`}>
-                      <div className="h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-panel ring-1 ring-ink/5">
-                        {(d.photo_url || vendor.logo_url) ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={d.photo_url || vendor.logo_url || ""} alt="" className="h-full w-full object-cover" />
-                        ) : (
-                          <span className="flex h-full w-full items-center justify-center"><Logo size={40} /></span>
-                        )}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <svg viewBox="0 0 16 16" width="15" height="15" className="shrink-0" aria-label={d.veg ? "Vegetarian" : "Non-vegetarian"}>
-                            <rect x="1.5" y="1.5" width="13" height="13" rx="2.5" fill="none" stroke={d.veg ? "#3E7A4E" : "#C0392B"} strokeWidth="1.8" />
-                            <circle cx="8" cy="8" r="3" fill={d.veg ? "#3E7A4E" : "#C0392B"} />
-                          </svg>
-                          <h3 className="truncate font-semibold uppercase text-ink">{d.name}</h3>
-                        </div>
-                        {d.description && <p className="mt-0.5 line-clamp-2 text-sm text-ink/55">{d.description}</p>}
-                        <p className="mt-1.5 font-semibold text-ink">{money(Number(d.price_cad))}</p>
-                      </div>
-                      {d.is_sold_out ? (
-                        <span className="shrink-0 rounded-full bg-chili/10 px-3 py-1 text-xs font-semibold text-chili">Sold out</span>
-                      ) : cart[d.id] ? (
-                        <div className="flex shrink-0 items-center gap-1 rounded-xl bg-spice/12 p-1 ring-1 ring-spice/20">
-                          <button onClick={() => set(d.id, -1)} className="grid h-8 w-8 place-items-center rounded-lg text-lg font-bold text-spice transition hover:bg-spice/15">−</button>
-                          <span className="w-5 text-center font-semibold tabular-nums">{cart[d.id]}</span>
-                          <button onClick={() => set(d.id, +1)} className="grid h-8 w-8 place-items-center rounded-lg text-lg font-bold text-spice transition hover:bg-spice/15">+</button>
-                        </div>
-                      ) : (
-                        <button
-                          disabled={closed}
-                          onClick={() => set(d.id, +1)}
-                          className="shrink-0 rounded-xl bg-spice px-5 py-2.5 text-sm font-semibold text-ink shadow-sm transition hover:brightness-[1.04] active:scale-95 disabled:opacity-40"
-                        >
-                          Add
-                        </button>
-                      )}
-                    </div>
+                <div className="mt-2 flex gap-5 overflow-x-auto text-sm font-semibold">
+                  {groups.map((g) => (
+                    <button key={g.service.id} onClick={() => scrollToSection(g.service.id)} className={`whitespace-nowrap border-b-2 pb-2 pt-1 uppercase tracking-wide transition ${activeId === g.service.id ? "border-spice text-ink" : "border-transparent text-ink/45"}`}>{g.service.name}</button>
                   ))}
                 </div>
               </div>
-            ))}
-          </section>
-        ) : (
-          <form onSubmit={submit} className="mt-7 space-y-5 rounded-2xl bg-white p-6 shadow-card ring-1 ring-ink/[0.04]">
-            <div>
-              <h2 className="font-display text-2xl font-semibold text-ink">Your order</h2>
-              {lines.length === 0 ? (
-                <p className="mt-2 text-sm text-ink/50">Your cart is empty — go back and add a dish.</p>
-              ) : (
-                <>
-                  <div className="mt-3 space-y-2.5">
-                    {lines.map((l) => (
-                      <div key={l.dish.id} className="flex items-center gap-3">
+            )}
+
+            <section className={showNav ? "mt-4" : "mt-7"}>
+              {allDishes.length === 0 && (
+                <p className="rounded-2xl bg-white py-12 text-center text-ink/50 shadow-card">No dishes available right now.</p>
+              )}
+              {allDishes.length > 0 && (
+                <div className="flex items-center gap-4 text-xs font-medium text-ink/50">
+                  <span className="inline-flex items-center gap-1.5"><svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="2.5" fill="none" stroke="#3E7A4E" strokeWidth="1.8" /><circle cx="8" cy="8" r="3" fill="#3E7A4E" /></svg> Veg</span>
+                  <span className="inline-flex items-center gap-1.5"><svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="2.5" fill="none" stroke="#C0392B" strokeWidth="1.8" /><circle cx="8" cy="8" r="3" fill="#C0392B" /></svg> Non-veg</span>
+                </div>
+              )}
+              {q && visibleGroups.length === 0 && (
+                <p className="py-10 text-center text-sm text-ink/45">No dishes match &ldquo;{query}&rdquo;.</p>
+              )}
+              {visibleGroups.map((g) => (
+                <div key={g.service.id} id={`sec-${g.service.id}`} className="scroll-mt-28 pt-6 first:pt-3">
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <h2 className="font-display text-xl font-bold uppercase tracking-wide text-ink">{g.service.name}</h2>
+                    {g.service.dates.length > 0 && <span className="rounded-full bg-panel px-2.5 py-0.5 text-xs font-semibold text-ink/60">{formatServiceDates(g.service.dates)}</span>}
+                  </div>
+                  {g.service.description && <p className="mt-1 text-sm text-ink/50">{g.service.description}</p>}
+                  <div className="mt-2">
+                    {g.dishes.map((d) => (
+                      <div key={d.id} className={`flex items-center gap-3 border-t border-line py-3 ${d.is_sold_out ? "opacity-55" : ""}`}>
+                        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-panel ring-1 ring-ink/5">
+                          {(d.photo_url || vendor.logo_url) ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={d.photo_url || vendor.logo_url || ""} alt="" className="h-full w-full object-cover" />
+                          ) : (
+                            <span className="flex h-full w-full items-center justify-center"><Logo size={30} /></span>
+                          )}
+                        </div>
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-semibold text-ink">{l.dish.name}</p>
-                          <p className="text-xs text-ink/45">{money(Number(l.dish.price_cad))} each</p>
+                          <div className="flex items-center gap-1.5">
+                            <svg viewBox="0 0 16 16" width="14" height="14" className="shrink-0" aria-label={d.veg ? "Vegetarian" : "Non-vegetarian"}>
+                              <rect x="1.5" y="1.5" width="13" height="13" rx="2.5" fill="none" stroke={d.veg ? "#3E7A4E" : "#C0392B"} strokeWidth="1.8" />
+                              <circle cx="8" cy="8" r="3" fill={d.veg ? "#3E7A4E" : "#C0392B"} />
+                            </svg>
+                            <h3 className="truncate font-semibold capitalize text-ink">{d.name}</h3>
+                          </div>
+                          {d.description && <p className="truncate text-xs text-ink/50">{d.description}</p>}
+                          <p className="mt-0.5 text-sm font-semibold text-ink">{money(Number(d.price_cad))}</p>
                         </div>
-                        <div className="flex items-center gap-1 rounded-lg bg-spice/12 p-0.5 ring-1 ring-spice/20">
-                          <button type="button" aria-label="Remove one" onClick={() => set(l.dish.id, -1)} className="grid h-7 w-7 place-items-center rounded-md text-lg font-bold text-spice transition hover:bg-spice/15">−</button>
-                          <span className="w-5 text-center text-sm font-semibold tabular-nums">{l.qty}</span>
-                          <button type="button" aria-label="Add one" onClick={() => set(l.dish.id, +1)} className="grid h-7 w-7 place-items-center rounded-md text-lg font-bold text-spice transition hover:bg-spice/15">+</button>
-                        </div>
-                        <span className="w-16 text-right text-sm font-semibold text-ink">{money(Number(l.dish.price_cad) * l.qty)}</span>
+                        {d.is_sold_out ? (
+                          <span className="shrink-0 rounded-full bg-chili/10 px-3 py-1 text-xs font-semibold text-chili">Sold out</span>
+                        ) : cart[d.id] ? (
+                          <div className="flex shrink-0 items-center gap-0.5 rounded-full bg-spice/12 p-1 ring-1 ring-spice/25">
+                            <button onClick={() => set(d.id, -1)} aria-label="Remove one" className="grid h-7 w-7 place-items-center rounded-full text-lg font-bold text-spice transition hover:bg-spice/15">−</button>
+                            <span className="w-5 text-center text-sm font-semibold tabular-nums">{cart[d.id]}</span>
+                            <button onClick={() => set(d.id, +1)} aria-label="Add one" className="grid h-7 w-7 place-items-center rounded-full text-lg font-bold text-spice transition hover:bg-spice/15">+</button>
+                          </div>
+                        ) : (
+                          <button disabled={closed} onClick={() => set(d.id, +1)} aria-label={`Add ${d.name}`} className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-spice text-xl font-bold text-ink shadow-sm transition hover:brightness-[1.04] active:scale-95 disabled:opacity-40">+</button>
+                        )}
                       </div>
                     ))}
                   </div>
-                  <div className="mt-3 flex items-center justify-between border-t border-line pt-3">
-                    <span className="text-sm text-ink/60">Subtotal</span>
-                    <span className="font-bold text-ink">{money(subtotal)}</span>
-                  </div>
-                </>
-              )}
-            </div>
-            <hr className="border-ink/10" />
-            <h2 className="font-display text-2xl font-semibold text-ink">Your details</h2>
-            <Field label="Name" required value={form.name} onChange={(v) => setForm({ ...form, name: v })} />
-            <div>
-              <span className="text-sm font-medium text-ink/70">Phone</span>
-              <div className={`mt-1.5 flex items-center rounded-xl border bg-white transition focus-within:ring-4 ${touched.phone && errors.phone ? "border-chili focus-within:ring-chili/15" : "border-line focus-within:border-spice focus-within:ring-spice/15"}`}>
-                <input list="country-codes" value={form.country} aria-label="Country code" placeholder="+1"
-                  onChange={(e) => setForm({ ...form, country: e.target.value, phone: formatPhoneFor(e.target.value, form.phone) })}
-                  className="w-[4.5rem] rounded-l-xl bg-transparent py-3 pl-3.5 pr-1 text-sm font-medium text-ink/80 outline-none placeholder:text-ink/30" />
-                <datalist id="country-codes">
-                  {COUNTRY_CODES.map((c) => <option key={c.name} value={c.code}>{c.name}</option>)}
-                </datalist>
-                <span className="h-6 w-px shrink-0 bg-line" />
-                <input type="tel" inputMode="numeric" placeholder="(613) 555-1234" value={form.phone}
-                  onChange={(e) => { const v = formatPhoneFor(form.country, e.target.value); setForm({ ...form, phone: v }); if (touched.phone) setErrors((x) => ({ ...x, phone: validatePhone(form.country, v) })); }}
-                  onBlur={() => { setTouched((t) => ({ ...t, phone: true })); setErrors((x) => ({ ...x, phone: validatePhone(form.country, form.phone) })); }}
-                  className="flex-1 rounded-r-xl bg-transparent px-3.5 py-3 text-ink placeholder:text-ink/30 outline-none" />
-              </div>
-              {touched.phone && errors.phone && <p className="mt-1 text-sm text-chili">{errors.phone}</p>}
-            </div>
-            <div>
-              <span className="text-sm font-medium text-ink/70">Email <span className="text-ink/35">(optional)</span></span>
-              <input type="email" placeholder="you@email.com" value={form.email}
-                onChange={(e) => { const v = e.target.value; setForm({ ...form, email: v }); if (touched.email) setErrors((x) => ({ ...x, email: validateEmail(v) })); }}
-                onBlur={() => { setTouched((t) => ({ ...t, email: true })); setErrors((x) => ({ ...x, email: validateEmail(form.email) })); }}
-                className={`mt-1.5 w-full rounded-xl border bg-white px-4 py-3 text-ink placeholder:text-ink/30 outline-none transition focus:ring-4 ${touched.email && errors.email ? "border-chili focus:border-chili focus:ring-chili/15" : "border-line focus:border-spice focus:ring-spice/15"}`} />
-              {touched.email && errors.email && <p className="mt-1 text-sm text-chili">{errors.email}</p>}
-            </div>
-
-            <div>
-              <span className="text-sm font-medium text-ink/70">Pickup or delivery</span>
-              <div className="mt-1.5 grid grid-cols-2 gap-2">
-                {(["pickup", "delivery"] as Fulfilment[]).map((f) => (
-                  <button type="button" key={f}
-                    onClick={() => setForm({ ...form, fulfilment: f })}
-                    className={`rounded-xl border px-3 py-2.5 text-sm font-semibold capitalize transition ${form.fulfilment === f ? "border-spice bg-spice/10 text-ink" : "border-line text-ink/55 hover:border-ink/20"}`}>
-                    {f}
-                  </button>
-                ))}
-              </div>
-            </div>
-            {form.fulfilment === "delivery" && (
-              <Field label="Delivery address" required value={form.address} onChange={(v) => setForm({ ...form, address: v })} />
-            )}
-            <Field label="Notes (optional)" value={form.note} onChange={(v) => setForm({ ...form, note: v })} />
-
-            <div>
-              <p className="mb-1.5 text-sm font-medium text-ink/70">Payment</p>
-              <div className="space-y-2">
-                {vendor.accept_cash && (
-                  <PayRadio active={form.payChoice === "cash"} onClick={() => setForm({ ...form, payChoice: "cash" })}
-                    label={form.fulfilment === "delivery" ? "Cash on delivery" : "Cash on pickup"} />
-                )}
-                {vendor.accept_interac && (
-                  <PayRadio active={form.payChoice === "interac"} onClick={() => setForm({ ...form, payChoice: "interac" })} label="Interac e-transfer" />
-                )}
-              </div>
-              {form.payChoice === "interac" && (
-                <p className="mt-2 rounded-xl border border-spice/30 bg-spice/10 px-3.5 py-2.5 text-sm text-ink">
-                  {vendor.offline_instructions || "The kitchen will share Interac e-transfer details — please confirm with them."}
-                </p>
-              )}
-            </div>
-
-            {err && <p className="text-sm font-medium text-chili">{err}</p>}
-            <div className="flex gap-2 pt-1">
-              <button type="button" onClick={() => setCheckout(false)} className="rounded-xl border border-line px-5 py-3 font-semibold text-ink/60 transition hover:border-ink/20">Back</button>
-              <button disabled={submitting || count === 0} className="flex-1 rounded-xl bg-spice px-4 py-3 font-semibold text-ink shadow-sm transition hover:brightness-[1.04] active:scale-[.99] disabled:opacity-60">
-                {submitting ? <span className="inline-flex items-center gap-2"><Spinner />Placing…</span> : `Place order · ${money(subtotal)}`}
+                </div>
+              ))}
+            </section>
+          </>
+        ) : (
+          <div className="mt-7 space-y-4">
+            <div className="overflow-hidden rounded-2xl border border-line bg-white shadow-card">
+              <button type="button" onClick={() => setSummaryOpen((o) => !o)} aria-expanded={summaryOpen} className="flex w-full items-center justify-between gap-3 p-4 text-left transition hover:bg-panel/30">
+                <span className="min-w-0">
+                  <span className="block font-semibold text-ink">Your order</span>
+                  <span className="block text-xs text-ink/50">{count} item{count === 1 ? "" : "s"}</span>
+                </span>
+                <span className="flex shrink-0 items-center gap-2">
+                  <span className="text-lg font-semibold text-ink">{money(subtotal)}</span>
+                  <svg viewBox="0 0 24 24" className={`h-4 w-4 text-ink/40 transition-transform ${summaryOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+                </span>
               </button>
+              {summaryOpen && (
+                <div className="border-t border-line px-4 pb-4 pt-3">
+                  {lines.length === 0 ? (
+                    <p className="text-sm text-ink/50">Your cart is empty — go back and add a dish.</p>
+                  ) : (
+                    <div className="space-y-2.5">
+                      {lines.map((l) => (
+                        <div key={l.dish.id} className="flex items-center gap-3">
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-semibold text-ink">{l.dish.name}</p>
+                            <p className="truncate text-xs text-ink/45">{money(Number(l.dish.price_cad))} each</p>
+                          </div>
+                          <div className="flex shrink-0 items-center gap-1 rounded-lg bg-spice/12 p-0.5 ring-1 ring-spice/20">
+                            <button type="button" aria-label="Remove one" onClick={() => set(l.dish.id, -1)} className="grid h-7 w-7 place-items-center rounded-md text-lg font-bold text-spice transition hover:bg-spice/15">−</button>
+                            <span className="min-w-[1.5rem] text-center text-sm font-semibold tabular-nums">{l.qty}</span>
+                            <button type="button" aria-label="Add one" onClick={() => set(l.dish.id, +1)} className="grid h-7 w-7 place-items-center rounded-md text-lg font-bold text-spice transition hover:bg-spice/15">+</button>
+                          </div>
+                          <span className="min-w-[4.5rem] shrink-0 whitespace-nowrap text-right text-sm font-semibold text-ink tabular-nums">{money(Number(l.dish.price_cad) * l.qty)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-          </form>
+
+            <form id="checkout-form" onSubmit={submit} className="space-y-5 rounded-2xl border border-line bg-white p-5 shadow-card">
+              <div>
+                <SectionLabel>Contact</SectionLabel>
+                <div className="space-y-2.5">
+                  <IconInput icon={<svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg>} ariaLabel="Your name" required placeholder="Your name" value={form.name} onChange={(v) => setForm({ ...form, name: v })} />
+                  <div>
+                    <div className={`flex items-center gap-2.5 rounded-xl border bg-white px-3.5 py-3 transition focus-within:ring-4 ${touched.phone && errors.phone ? "border-chili focus-within:ring-chili/15" : "border-line focus-within:border-spice focus-within:ring-spice/15"}`}>
+                      <svg viewBox="0 0 24 24" className="h-[18px] w-[18px] shrink-0 text-ink/40" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z" /></svg>
+                      <input list="country-codes" value={form.country} aria-label="Country code" placeholder="+1" onChange={(e) => setForm({ ...form, country: e.target.value, phone: formatPhoneFor(e.target.value, form.phone) })} className="w-11 shrink-0 bg-transparent text-sm font-medium text-ink/80 outline-none placeholder:text-ink/30" />
+                      <datalist id="country-codes">{COUNTRY_CODES.map((c) => <option key={c.name} value={c.code}>{c.name}</option>)}</datalist>
+                      <span className="h-5 w-px shrink-0 bg-line" />
+                      <input type="tel" inputMode="numeric" placeholder="(613) 555-1234" value={form.phone} onChange={(e) => { const v = formatPhoneFor(form.country, e.target.value); setForm({ ...form, phone: v }); if (touched.phone) setErrors((x) => ({ ...x, phone: validatePhone(form.country, v) })); }} onBlur={() => { setTouched((t) => ({ ...t, phone: true })); setErrors((x) => ({ ...x, phone: validatePhone(form.country, form.phone) })); }} className="w-full bg-transparent text-ink outline-none placeholder:text-ink/40" />
+                    </div>
+                    {touched.phone && errors.phone && <p className="mt-1 text-sm text-chili">{errors.phone}</p>}
+                  </div>
+                  <IconInput icon={<svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></svg>} ariaLabel="Email (optional)" type="email" placeholder="Email (optional)" value={form.email} onChange={(v) => { setForm({ ...form, email: v }); if (touched.email) setErrors((x) => ({ ...x, email: validateEmail(v) })); }} onBlur={() => { setTouched((t) => ({ ...t, email: true })); setErrors((x) => ({ ...x, email: validateEmail(form.email) })); }} error={touched.email ? errors.email : ""} />
+                </div>
+              </div>
+
+              <div>
+                <SectionLabel>How would you like it?</SectionLabel>
+                <div className="flex gap-1 rounded-xl bg-panel p-1">
+                  {(["pickup", "delivery"] as Fulfilment[]).map((f) => {
+                    const active = form.fulfilment === f;
+                    return (
+                      <button type="button" key={f} onClick={() => setForm({ ...form, fulfilment: f })} className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold capitalize transition ${active ? "bg-white text-ink shadow-sm" : "text-ink/50 hover:text-ink/70"}`}>
+                        {f === "pickup" ? (
+                          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><path d="M3 6h18" /><path d="M16 10a4 4 0 0 1-8 0" /></svg>
+                        ) : (
+                          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13" /><path d="M16 8h4l3 3v5h-7z" /><circle cx="5.5" cy="18.5" r="1.5" /><circle cx="18.5" cy="18.5" r="1.5" /></svg>
+                        )}
+                        {f}
+                      </button>
+                    );
+                  })}
+                </div>
+                {form.fulfilment === "delivery" && (
+                  <div className="mt-2.5">
+                    <IconInput icon={<svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>} ariaLabel="Delivery address" required placeholder="Delivery address" value={form.address} onChange={(v) => setForm({ ...form, address: v })} />
+                  </div>
+                )}
+                {noteOpen || form.note ? (
+                  <div className="mt-2.5">
+                    <IconInput icon={<svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6" /></svg>} ariaLabel="Note for the kitchen" placeholder="Note for the kitchen (optional)" value={form.note} onChange={(v) => setForm({ ...form, note: v })} />
+                  </div>
+                ) : (
+                  <button type="button" onClick={() => setNoteOpen(true)} className="mt-2.5 inline-flex items-center gap-1.5 text-sm font-semibold text-[#9a5a14] transition hover:brightness-110">
+                    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
+                    Add a note for the kitchen
+                  </button>
+                )}
+              </div>
+
+              <div>
+                <SectionLabel>Payment</SectionLabel>
+                <div className="space-y-2">
+                  {vendor.accept_cash && (
+                    <PayRadio active={form.payChoice === "cash"} onClick={() => setForm({ ...form, payChoice: "cash" })} label={form.fulfilment === "delivery" ? "Cash on delivery" : "Cash on pickup"} />
+                  )}
+                  {vendor.accept_interac && (
+                    <PayRadio active={form.payChoice === "interac"} onClick={() => setForm({ ...form, payChoice: "interac" })} label="Interac e-transfer" />
+                  )}
+                </div>
+                {form.payChoice === "interac" && (
+                  <p className="mt-2 rounded-xl border border-spice/30 bg-spice/10 px-3.5 py-2.5 text-sm text-ink">{vendor.offline_instructions || "The kitchen will share Interac e-transfer details — please confirm with them."}</p>
+                )}
+                <p className="mt-3 flex items-center gap-1.5 text-xs text-ink/50">
+                  <svg viewBox="0 0 24 24" className="h-[15px] w-[15px] shrink-0 text-curry" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><path d="m9 12 2 2 4-4" /></svg>
+                  You pay the kitchen directly — no card needed.
+                </p>
+              </div>
+
+              {err && <p className="text-sm font-medium text-chili">{err}</p>}
+            </form>
+          </div>
         )}
       </div>
 
@@ -321,7 +390,17 @@ export default function Storefront({ vendor, groups }: { vendor: Vendor; groups:
         <div className="fixed inset-x-0 bottom-0 p-4">
           <div className="mx-auto flex max-w-2xl items-center justify-between rounded-2xl bg-ink px-5 py-3.5 text-cream shadow-pop">
             <span className="font-semibold">{count} item{count > 1 ? "s" : ""} <span className="text-cream/50">·</span> {money(subtotal)}</span>
-            <button onClick={() => setCheckout(true)} className="rounded-xl bg-spice px-6 py-2.5 font-semibold text-ink transition hover:brightness-[1.04] active:scale-95">Checkout →</button>
+            <button onClick={() => { setCheckout(true); window.scrollTo({ top: 0 }); }} className="rounded-xl bg-spice px-6 py-2.5 font-semibold text-ink transition hover:brightness-[1.04] active:scale-95">Checkout →</button>
+          </div>
+        </div>
+      )}
+      {checkout && (
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white p-3">
+          <div className="mx-auto flex max-w-2xl items-center gap-2.5 px-1">
+            <button type="button" onClick={() => { setCheckout(false); window.scrollTo({ top: 0 }); setActiveId(groups[0]?.service.id ?? ""); }} className="rounded-xl border border-line bg-white px-5 py-3 font-semibold text-ink/60 transition hover:border-ink/25">Back</button>
+            <button type="submit" form="checkout-form" disabled={submitting || count === 0} className="flex-1 rounded-xl bg-spice px-4 py-3 font-semibold text-ink shadow-sm transition hover:brightness-[1.04] active:scale-[.99] disabled:opacity-60">
+              {submitting ? <span className="inline-flex items-center justify-center gap-2"><Spinner />Placing…</span> : `Place order · ${money(subtotal)}`}
+            </button>
           </div>
         </div>
       )}
@@ -329,16 +408,19 @@ export default function Storefront({ vendor, groups }: { vendor: Vendor; groups:
   );
 }
 
-function Field({ label, value, onChange, required, type = "text" }: { label: string; value: string; onChange: (v: string) => void; required?: boolean; type?: string }) {
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return <p className="mb-2.5 text-xs font-semibold uppercase tracking-[0.08em] text-ink/40">{children}</p>;
+}
+
+function IconInput({ icon, value, onChange, placeholder, type = "text", required, ariaLabel, error, onBlur }: { icon: React.ReactNode; value: string; onChange: (v: string) => void; placeholder?: string; type?: string; required?: boolean; ariaLabel?: string; error?: string; onBlur?: () => void }) {
   return (
-    <label className="block">
-      <span className="text-sm font-medium text-ink/70">{label}</span>
-      <input
-        type={type} required={required} value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-3 text-ink placeholder:text-ink/30 outline-none transition focus:border-spice focus:ring-4 focus:ring-spice/15"
-      />
-    </label>
+    <div>
+      <div className={`flex items-center gap-2.5 rounded-xl border bg-white px-3.5 py-3 transition focus-within:ring-4 ${error ? "border-chili focus-within:ring-chili/15" : "border-line focus-within:border-spice focus-within:ring-spice/15"}`}>
+        <span className="shrink-0 text-ink/40">{icon}</span>
+        <input type={type} required={required} aria-label={ariaLabel} placeholder={placeholder} value={value} onChange={(e) => onChange(e.target.value)} onBlur={onBlur} className="w-full bg-transparent text-ink outline-none placeholder:text-ink/40" />
+      </div>
+      {error && <p className="mt-1 text-sm text-chili">{error}</p>}
+    </div>
   );
 }
 
