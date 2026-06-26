@@ -282,7 +282,6 @@ export default function Storefront({ vendor, groups }: { vendor: Vendor; groups:
             {form.fulfilment === "delivery" && (
               <Field label="Delivery address" required value={form.address} onChange={(v) => setForm({ ...form, address: v })} />
             )}
-            <Field label="Preferred time (optional)" value={form.requestedTime} onChange={(v) => setForm({ ...form, requestedTime: v })} />
             <Field label="Notes (optional)" value={form.note} onChange={(v) => setForm({ ...form, note: v })} />
 
             <div>
