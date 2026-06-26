@@ -97,10 +97,10 @@ export default async function MenuPage({ searchParams }: { searchParams: { first
               const markAll = list.length > 0 ? (
                 <>
                   <form action={setServiceSoldOut.bind(null, s.id, true)}>
-                    <PendingButton pendingLabel="…" title="Mark this menu sold out" className="rounded-lg border border-chili/25 px-2.5 py-1 text-xs font-semibold text-chili transition hover:bg-chili/10 sm:border-chili/25 max-sm:w-full max-sm:border-0 max-sm:text-left">Mark all sold out</PendingButton>
+                    <PendingButton pendingLabel="…" title="Mark this menu sold out" className="flex items-center gap-2.5 rounded-lg border border-chili/25 px-2.5 py-1 text-xs font-semibold text-chili transition hover:bg-chili/10 max-sm:w-full max-sm:rounded-none max-sm:border-0 max-sm:px-3 max-sm:py-2.5 max-sm:text-sm max-sm:font-normal max-sm:text-ink max-sm:hover:bg-panel/60"><svg viewBox="0 0 24 24" className="hidden h-[18px] w-[18px] shrink-0 text-chili max-sm:block" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="m15 9-6 6" /><path d="m9 9 6 6" /></svg>Mark all sold out</PendingButton>
                   </form>
                   <form action={setServiceSoldOut.bind(null, s.id, false)}>
-                    <PendingButton pendingLabel="…" title="Mark this menu available" className="rounded-lg border border-curry/30 px-2.5 py-1 text-xs font-semibold text-curry transition hover:bg-curry/10 max-sm:w-full max-sm:border-0 max-sm:text-left">Mark all available</PendingButton>
+                    <PendingButton pendingLabel="…" title="Mark this menu available" className="flex items-center gap-2.5 rounded-lg border border-curry/30 px-2.5 py-1 text-xs font-semibold text-curry transition hover:bg-curry/10 max-sm:w-full max-sm:rounded-none max-sm:border-0 max-sm:px-3 max-sm:py-2.5 max-sm:text-sm max-sm:font-normal max-sm:text-ink max-sm:hover:bg-panel/60"><svg viewBox="0 0 24 24" className="hidden h-[18px] w-[18px] shrink-0 text-curry max-sm:block" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="m8.5 12.5 2.5 2.5 4.5-5" /></svg>Mark all available</PendingButton>
                   </form>
                 </>
               ) : null;

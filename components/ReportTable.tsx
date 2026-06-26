@@ -9,7 +9,7 @@ import type { Order, OrderItem } from "@/lib/types";
 type Row = Order & { order_items: OrderItem[] };
 
 const fmtTime = (iso: string) =>
-  new Intl.DateTimeFormat("en-CA", { timeZone: "America/Toronto", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(iso));
+  new Intl.DateTimeFormat("en-US", { timeZone: "America/Toronto", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(iso));
 
 function statusClasses(status: string): string {
   switch (status) {
@@ -47,6 +47,77 @@ function PayToggle({ id, paid }: { id: string; paid: boolean }) {
         {paid ? "Mark unpaid" : "Mark paid"}
       </PendingButton>
     </form>
+  );
+}
+
+function FulfilmentIcon({ fulfilment }: { fulfilment: string }) {
+  if (fulfilment === "delivery") {
+    return (
+      <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M3 5h11v11H3z" /><path d="M14 9h4l3 3v4h-7z" /><circle cx="7" cy="18.5" r="1.6" /><circle cx="17.5" cy="18.5" r="1.6" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M6 2 4 6v13a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V6l-2-4z" /><path d="M4 6h16" /><path d="M15 10a3 3 0 0 1-6 0" />
+    </svg>
+  );
+}
+
+function ReportCard({ o, menu }: { o: Row; menu: string }) {
+  const [open, setOpen] = useState(false);
+  const items = menuItemsOf(o.order_items, menu);
+  const amount = menu === "all" ? Number(o.subtotal_cad) : menuPortion(o.order_items, menu);
+  const lost = o.status === "declined" || o.status === "cancelled";
+  const unitCount = items.reduce((n, it) => n + it.qty, 0);
+
+  return (
+    <div className="rounded-xl bg-white p-3.5 shadow-card">
+      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="flex w-full items-start justify-between gap-3 text-left">
+        <span className="min-w-0">
+          <span className="block truncate font-semibold text-ink">{o.customer_name}</span>
+          <span className="mt-0.5 flex items-center gap-1.5 text-[13px] text-ink/45">
+            <FulfilmentIcon fulfilment={o.fulfilment} />
+            <span className="capitalize">{o.fulfilment}</span>
+            <span aria-hidden="true">·</span>
+            <span className="whitespace-nowrap">{unitCount} item{unitCount === 1 ? "" : "s"}</span>
+          </span>
+        </span>
+        <span className="flex shrink-0 items-center gap-1.5">
+          <StatusBadge status={o.status} />
+          <svg viewBox="0 0 24 24" className={`h-4 w-4 text-ink/30 transition-transform ${open ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+        </span>
+      </button>
+
+      {open && (
+        <>
+          <div className="mt-2.5 text-sm text-ink/80">
+            {items.map((it) => (
+              <div key={it.id}>{it.qty} × {it.name_snapshot}{it.service_snapshot ? <span className="text-ink/40"> · {it.service_snapshot}</span> : null}</div>
+            ))}
+          </div>
+          <p className="mt-2 text-[13px] text-ink/45">
+            {o.customer_phone}
+            {o.customer_address ? <span className="text-ink/40"> · {o.customer_address}</span> : null}
+            <span className="text-ink/35"> · {fmtTime(o.created_at)}</span>
+          </p>
+        </>
+      )}
+
+      <div className={`flex items-center justify-between gap-3 ${open ? "mt-2.5 border-t border-ink/5 pt-2.5" : "mt-2.5"}`}>
+        <div className="min-w-0">
+          <span className="text-lg font-bold text-ink">{money(amount)}</span>
+          {open && <span className="block text-xs text-ink/40">{o.payment_label ?? o.payment_method}</span>}
+        </div>
+        {!lost && (
+          <div className="flex shrink-0 items-center gap-2">
+            <PayBadge paid={o.payment_status === "paid"} />
+            <PayToggle id={o.id} paid={o.payment_status === "paid"} />
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -218,34 +289,7 @@ export default function ReportTable({ rows, menu, menuLabel, breakdown, range, s
           <div className="rounded-xl bg-white px-4 py-8 text-center text-ink/40 shadow-card">{query ? "No orders match your search." : "No orders for this filter."}</div>
         )}
         {filtered.map((o) => (
-          <div key={o.id} className="rounded-xl bg-white p-4 shadow-card">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="font-semibold text-ink">{o.customer_name}</p>
-                <p className="text-xs capitalize text-ink/45">{o.fulfilment} · {fmtTime(o.created_at)}</p>
-              </div>
-              <StatusBadge status={o.status} />
-            </div>
-            <div className="mt-2 border-t border-ink/5 pt-2 text-sm text-ink/80">
-              {itemsOf(o).map((it) => (
-                <div key={it.id}>{it.qty} × {it.name_snapshot}{it.service_snapshot ? <span className="text-ink/40"> · {it.service_snapshot}</span> : null}</div>
-              ))}
-            </div>
-            <div className="mt-2 text-sm text-ink/60">
-              <p className="whitespace-nowrap">{o.customer_phone}</p>
-              {o.customer_address && <p className="text-ink/45">{o.customer_address}</p>}
-            </div>
-            <div className="mt-3 flex items-center justify-between border-t border-ink/5 pt-3">
-              <span className="text-lg font-bold text-ink">{money(amountOf(o))}</span>
-              {!(o.status === "declined" || o.status === "cancelled") && (
-                <div className="flex items-center gap-2">
-                  <PayBadge paid={o.payment_status === "paid"} />
-                  <PayToggle id={o.id} paid={o.payment_status === "paid"} />
-                </div>
-              )}
-            </div>
-            <p className="mt-1 text-right text-xs text-ink/40">{o.payment_label ?? o.payment_method}</p>
-          </div>
+          <ReportCard key={o.id} o={o} menu={menu} />
         ))}
       </div>
     </div>

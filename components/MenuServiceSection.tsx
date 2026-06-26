@@ -80,16 +80,16 @@ export default function MenuServiceSection({
             </button>
             {menuOpen && (
               <>
-                <button className="fixed inset-0 z-10 cursor-default" aria-hidden="true" onClick={() => setMenuOpen(false)} tabIndex={-1} />
+                <button className="fixed inset-0 z-10 cursor-default bg-ink/30" aria-hidden="true" onClick={() => setMenuOpen(false)} tabIndex={-1} />
                 <div className="absolute right-0 top-9 z-20 w-48 overflow-hidden rounded-xl border border-line bg-white py-1 shadow-pop">
                   <button onClick={() => { setEditing(true); setMenuOpen(false); }} className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm text-ink transition hover:bg-panel/60"><MiPencil /> Edit details</button>
-                  <div className="sm:hidden">{markAll}</div>
-                  <form action={toggleServiceActive.bind(null, id, !service.is_active)}>
-                    <PendingButton className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm text-ink transition hover:bg-panel/60"><MiEye /> {service.is_active ? "Turn off (hide)" : "Turn on"}</PendingButton>
-                  </form>
                   <form action={duplicateService.bind(null, id)}>
                     <PendingButton className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm text-ink transition hover:bg-panel/60"><MiCopy /> Duplicate</PendingButton>
                   </form>
+                  <form action={toggleServiceActive.bind(null, id, !service.is_active)}>
+                    <PendingButton className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm text-ink transition hover:bg-panel/60"><MiEye /> {service.is_active ? "Turn off (hide)" : "Turn on"}</PendingButton>
+                  </form>
+                  <div className="border-t border-line sm:hidden">{markAll}</div>
                   <form action={deleteService.bind(null, id)}>
                     <PendingButton className="flex w-full items-center gap-2.5 border-t border-line px-3 py-2 text-left text-sm text-chili transition hover:bg-chili/5"><MiTrash /> Delete menu</PendingButton>
                   </form>
