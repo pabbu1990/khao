@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "smoke:health": "node scripts/smoke-health.mjs",
+    "smoke": "playwright test",
+    "smoke:install": "playwright install chromium"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",
@@ -22,6 +25,8 @@
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.13",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "@playwright/test": "^1.48.0",
+    "dotenv": "^16.4.5"
   }
 }
