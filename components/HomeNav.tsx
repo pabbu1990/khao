@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Logo from "@/components/Logo";
 
-const LINKS: [string, string][] = [["#features", "Features"], ["#pricing", "Pricing"], ["#faq", "FAQ"], ["#contact", "Contact"]];
+const LINKS: [string, string][] = [["#pricing", "Pricing"], ["#faq", "FAQ"], ["#contact", "Contact"]];
 
 export default function HomeNav() {
   const [open, setOpen] = useState(false);

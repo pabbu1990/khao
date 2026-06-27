@@ -18,10 +18,11 @@ export default function DashboardNav({ openCount = 0 }: { openCount?: number }) 
     : pathname.startsWith("/dashboard/settings") ? "settings"
     : "orders";
 
-  const TABS = [
+  const TABS: { key: string; href: string; label: string; badge: number; locked?: boolean }[] = [
     { key: "orders", href: "/dashboard", label: "Orders", badge: openCount },
-    { key: "report", href: "/dashboard/report", label: "Report", badge: 0 },
     { key: "menu", href: "/dashboard/menu", label: "Menus", badge: 0 },
+    { key: "report", href: "/dashboard/report", label: "Report", badge: 0 },
+    { key: "analytics", href: "#", label: "Analytics", badge: 0, locked: true },
     { key: "settings", href: "/dashboard/settings", label: "Settings", badge: 0 },
   ];
 
@@ -35,7 +36,12 @@ export default function DashboardNav({ openCount = 0 }: { openCount?: number }) 
 
         {/* Desktop */}
         <nav className="hidden items-center gap-1 sm:flex">
-          {TABS.map((t) => (
+          {TABS.map((t) => t.locked ? (
+            <span key={t.key} aria-disabled="true" title="Available with Khao Pro" className="inline-flex cursor-not-allowed select-none items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold text-cream/35">
+              <LockIcon />{t.label}
+              <span className="rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-spice/80">Pro</span>
+            </span>
+          ) : (
             <Link key={t.key} href={t.href} className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${active === t.key ? "bg-spice text-ink" : "text-cream/55 hover:bg-white/5 hover:text-cream"}`}>
               <span className="inline-flex items-center gap-1.5">{t.label}{badgeEl(t.key, t.badge)}</span>
             </Link>
@@ -59,7 +65,12 @@ export default function DashboardNav({ openCount = 0 }: { openCount?: number }) 
       {/* Mobile menu */}
       {menuOpen && (
         <nav className="mx-auto mt-2 flex max-w-6xl flex-col gap-1 border-t border-white/10 pt-2 sm:hidden">
-          {TABS.map((t) => (
+          {TABS.map((t) => t.locked ? (
+            <span key={t.key} aria-disabled="true" className="flex cursor-not-allowed select-none items-center justify-between rounded-lg px-3 py-2.5 text-sm font-semibold text-cream/35">
+              <span className="inline-flex items-center gap-1.5"><LockIcon />{t.label}</span>
+              <span className="rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-spice/80">Pro</span>
+            </span>
+          ) : (
             <Link key={t.key} href={t.href} onClick={() => setMenuOpen(false)} className={`flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-semibold transition ${active === t.key ? "bg-spice text-ink" : "text-cream/70 hover:bg-white/5"}`}>
               {t.label}{badgeEl(t.key, t.badge)}
             </Link>
@@ -71,4 +82,8 @@ export default function DashboardNav({ openCount = 0 }: { openCount?: number }) 
       )}
     </header>
   );
+}
+
+function LockIcon() {
+  return <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>;
 }
