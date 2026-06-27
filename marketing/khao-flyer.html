@@ -1,0 +1,86 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet"><style>
+  :root{--cream:#FBF6EE;--ink:#241409;--ink2:#2A1810;--spice:#E0922F;--spice-d:#A9650F;--line:#EADFCD;--panel:#F4EBDD;--muted:#7a6e60;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{background:#d9d2c7;}
+  body{font-family:'Hanken Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;display:flex;justify-content:center;padding:24px;color:#2A1810;}
+  .flyer{width:8.5in;min-height:11in;background:var(--cream);position:relative;overflow:hidden;border-radius:6px;box-shadow:0 12px 44px rgba(0,0,0,.20);display:flex;flex-direction:column;}
+  .header{background:var(--ink);color:var(--cream);padding:24px 0.66in;display:flex;align-items:center;justify-content:space-between;}
+  .lock{display:flex;align-items:center;gap:13px;} .mark{width:44px;height:44px;}
+  .brand{font-size:28px;font-weight:800;color:var(--spice);letter-spacing:-0.6px;line-height:1;}
+  .brand-tag{font-size:12.5px;color:rgba(251,246,238,.62);margin-top:4px;white-space:nowrap;}
+  .pill{border:1.5px solid rgba(224,146,47,.55);color:var(--spice);border-radius:999px;padding:7px 15px;font-size:12.5px;font-weight:700;white-space:nowrap;}
+  .body{padding:0.36in 0.66in 0;display:flex;flex-direction:column;flex:1;}
+  .headline{font-size:42px;line-height:1.03;font-weight:800;letter-spacing:-1.3px;}
+  .headline .hl{color:var(--spice);}
+  .sub{margin-top:12px;font-size:16.5px;line-height:1.5;color:#564b3f;max-width:6.6in;} .sub b{color:var(--ink2);font-weight:700;}
+  .sec-label{margin-top:0.28in;font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:12px;}
+  .sec-label::after{content:"";flex:1;height:1px;background:var(--line);}
+  .flow{margin-top:14px;display:flex;align-items:center;justify-content:center;gap:14px;}
+  .dev{width:1.36in;text-align:center;} .dev .ph{width:100%;height:auto;filter:drop-shadow(0 8px 16px rgba(36,20,9,.14));}
+  .cap{margin-top:10px;font-size:13.5px;font-weight:700;color:var(--ink2);line-height:1.25;}
+  .cap span{display:block;font-weight:400;font-size:12px;color:var(--muted);margin-top:2px;}
+  .arrow{flex-shrink:0;width:42px;} .arrow svg{width:100%;}
+  .diff{margin-top:0.3in;border-left:4px solid var(--spice);padding:4px 0 4px 18px;}
+  .diff-big{font-size:20px;font-weight:800;letter-spacing:-0.3px;} .diff-sub{margin-top:5px;font-size:14.5px;line-height:1.45;color:var(--muted);}
+  .cta{margin-top:0.3in;margin-bottom:0.34in;display:flex;align-items:center;gap:24px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px 24px;box-shadow:0 6px 20px rgba(36,20,9,.06);}
+  .cta img{width:114px;height:114px;border-radius:10px;flex-shrink:0;}
+  .cta-h{font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--spice-d);}
+  .cta-big{font-size:22px;font-weight:800;line-height:1.15;margin-top:6px;} .cta-url{font-size:22px;font-weight:800;color:var(--spice);margin-top:10px;letter-spacing:-0.3px;} .cta-q{font-size:14px;color:var(--muted);margin-top:5px;}
+  .foot{background:var(--ink);color:rgba(251,246,238,.7);font-size:12.5px;padding:12px 0.66in;display:flex;justify-content:space-between;align-items:center;} .foot b{color:var(--cream);font-weight:600;}
+  @media print{html,body{background:#fff;padding:0;}.flyer{box-shadow:none;border-radius:0;width:100%;min-height:100vh;}@page{size:Letter;margin:0;}}
+</style></head><body>
+<div class="flyer">
+  <header class="header"><div class="lock"><svg class="mark" viewBox="0 0 48 48" fill="none" aria-hidden="true"><g stroke="#E0922F" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M17 11c-1.3 1.7-1.3 3.4 0 5.1"/><path d="M24 9.5c-1.3 1.7-1.3 3.4 0 5.1"/><path d="M31 11c-1.3 1.7-1.3 3.4 0 5.1"/><path d="M9 22h30"/><path d="M11 22a13 13 0 0 0 26 0"/></g></svg><div><div class="brand">Khao</div><div class="brand-tag">Online ordering for home &amp; cloud kitchens</div></div></div><div class="pill">No commission, ever</div></header>
+  <div class="body">
+    <h1 class="headline">Orders lost in the <span class="hl">chat</span> again?</h1>
+    <p class="sub">Texts, DMs, group chats — and you&rsquo;re still counting them at 9pm. <b>Khao gives your kitchen one ordering link</b> — customers tap, pick, and order, and every order lands in one clean dashboard.</p>
+
+    <div class="sec-label">How it works</div>
+    <div class="flow">
+      <div class="dev"><div class="ph"><svg viewBox="0 0 260 500" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <rect x="4" y="4" width="252" height="492" rx="36" fill="#241409"/><rect x="14" y="14" width="232" height="472" rx="28" fill="#FBF6EE"/>
+  <rect x="104" y="22" width="52" height="9" rx="4.5" fill="#241409"/>
+  <text x="30" y="62" font-size="16.5" font-weight="800" fill="#2A1810">Sam&#39;s Kitchen</text>
+  <text x="30" y="80" font-size="10.5" fill="#9b8e7d">Weekend Specials  ·  Pickup &amp; delivery</text>
+  <rect x="30" y="92" width="86" height="22" rx="11" fill="#2A1810"/><text x="73" y="107" font-size="10.5" font-weight="700" fill="#FBF6EE" text-anchor="middle">Specials</text>
+  <rect x="122" y="92" width="74" height="22" rx="11" fill="#F4EBDD"/><text x="159" y="107" font-size="10.5" font-weight="600" fill="#9b8e7d" text-anchor="middle">Snacks</text>
+  <rect x="30" y="128" width="42" height="42" rx="10" fill="#EFE2CC"/><g stroke="#C68A3E" stroke-width="2.3" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M47 139 q-2 2 0 4 M51 138 q-2 2 0 4 M55 139 q-2 2 0 4"/><path d="M40 152 h22"/><path d="M42 152 a9 7 0 0 0 18 0"/></g><text x="84" y="146" font-size="12.5" font-weight="700" fill="#2A1810">Butter chicken</text><text x="84" y="163" font-size="11" fill="#9b8e7d">$15.00</text><circle cx="214" cy="149" r="14" fill="#E0922F"/><path d="M214 143 v12 M208 149 h12" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><rect x="30" y="180" width="42" height="42" rx="10" fill="#EFE2CC"/><g stroke="#C68A3E" stroke-width="2.3" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M47 191 q-2 2 0 4 M51 190 q-2 2 0 4 M55 191 q-2 2 0 4"/><path d="M40 204 h22"/><path d="M42 204 a9 7 0 0 0 18 0"/></g><text x="84" y="198" font-size="12.5" font-weight="700" fill="#2A1810">Cheese pizza</text><text x="84" y="215" font-size="11" fill="#9b8e7d">$12.00</text><circle cx="214" cy="201" r="14" fill="#E0922F"/><path d="M214 195 v12 M208 201 h12" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><rect x="30" y="232" width="42" height="42" rx="10" fill="#EFE2CC"/><g stroke="#C68A3E" stroke-width="2.3" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M47 243 q-2 2 0 4 M51 242 q-2 2 0 4 M55 243 q-2 2 0 4"/><path d="M40 256 h22"/><path d="M42 256 a9 7 0 0 0 18 0"/></g><text x="84" y="250" font-size="12.5" font-weight="700" fill="#2A1810">Chicken tacos</text><text x="84" y="267" font-size="11" fill="#9b8e7d">$6.00</text><circle cx="214" cy="253" r="14" fill="#E0922F"/><path d="M214 247 v12 M208 253 h12" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><rect x="30" y="284" width="42" height="42" rx="10" fill="#EFE2CC"/><g stroke="#C68A3E" stroke-width="2.3" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M47 295 q-2 2 0 4 M51 294 q-2 2 0 4 M55 295 q-2 2 0 4"/><path d="M40 308 h22"/><path d="M42 308 a9 7 0 0 0 18 0"/></g><text x="84" y="302" font-size="12.5" font-weight="700" fill="#2A1810">Mango lassi</text><text x="84" y="319" font-size="11" fill="#9b8e7d">$5.00</text><circle cx="214" cy="305" r="14" fill="#E0922F"/><path d="M214 299 v12 M208 305 h12" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
+  <rect x="22" y="430" width="216" height="44" rx="13" fill="#E0922F"/><text x="130" y="457" font-size="13" font-weight="800" fill="#241409" text-anchor="middle">View order  ·  $38.00</text></svg></div><div class="cap">Customers order<span>from one clean page</span></div></div>
+      <div class="arrow"><svg viewBox="0 0 40 24" fill="none" aria-hidden="true"><path d="M4 12h30M27 5l8 7-8 7" stroke="#E0922F" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="dev"><div class="ph"><svg viewBox="0 0 260 500" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <rect x="4" y="4" width="252" height="492" rx="36" fill="#241409"/><rect x="14" y="14" width="232" height="472" rx="28" fill="#FBF6EE"/>
+  <rect x="104" y="22" width="52" height="9" rx="4.5" fill="#241409"/>
+  <text x="30" y="62" font-size="17" font-weight="800" fill="#2A1810">Orders</text>
+  <circle cx="186" cy="56" r="4" fill="#3E7A4E"/><text x="196" y="60" font-size="11" font-weight="700" fill="#3E7A4E">Live</text>
+  <rect x="30" y="76" width="200" height="40" rx="10" fill="#F4EBDD"/>
+  <text x="44" y="101" font-size="11.5" font-weight="700" fill="#2A1810">Today</text>
+  <text x="216" y="101" font-size="11.5" font-weight="700" fill="#2A1810" text-anchor="end">12 orders  ·  $284</text>
+  <rect x="30" y="132" width="200" height="58" rx="12" fill="#fff" stroke="#EADFCD"/><rect x="30" y="132" width="4" height="58" rx="2" fill="#E0922F"/>
+      <text x="46" y="156" font-size="12.5" font-weight="700" fill="#2A1810">Priya R.</text>
+      <text x="46" y="174" font-size="10.5" fill="#9b8e7d">3 items · Pickup</text>
+      <text x="216" y="156" font-size="13" font-weight="800" fill="#2A1810" text-anchor="end">$38.00</text>
+      <text x="216" y="175" font-size="10" font-weight="700" fill="#E0922F" text-anchor="end">New</text>
+  <rect x="30" y="200" width="200" height="58" rx="12" fill="#fff" stroke="#EADFCD"/>
+      <text x="46" y="224" font-size="12.5" font-weight="700" fill="#2A1810">James C.</text>
+      <text x="46" y="242" font-size="10.5" fill="#9b8e7d">2 items · Delivery</text>
+      <text x="216" y="224" font-size="13" font-weight="800" fill="#2A1810" text-anchor="end">$24.00</text>
+      <text x="216" y="243" font-size="10" font-weight="700" fill="#3E7A4E" text-anchor="end">Accepted</text>
+  <rect x="30" y="268" width="200" height="58" rx="12" fill="#fff" stroke="#EADFCD"/><rect x="30" y="268" width="4" height="58" rx="2" fill="#E0922F"/>
+      <text x="46" y="292" font-size="12.5" font-weight="700" fill="#2A1810">Mia T.</text>
+      <text x="46" y="310" font-size="10.5" fill="#9b8e7d">5 items · Pickup</text>
+      <text x="216" y="292" font-size="13" font-weight="800" fill="#2A1810" text-anchor="end">$61.00</text>
+      <text x="216" y="311" font-size="10" font-weight="700" fill="#E0922F" text-anchor="end">New</text>
+  <rect x="30" y="336" width="200" height="58" rx="12" fill="#fff" stroke="#EADFCD"/>
+      <text x="46" y="360" font-size="12.5" font-weight="700" fill="#2A1810">David L.</text>
+      <text x="46" y="378" font-size="10.5" fill="#9b8e7d">1 item · Pickup</text>
+      <text x="216" y="360" font-size="13" font-weight="800" fill="#2A1810" text-anchor="end">$12.00</text>
+      <text x="216" y="379" font-size="10" font-weight="700" fill="#3E7A4E" text-anchor="end">Accepted</text>
+  </svg></div><div class="cap">You get every order<span>live on your dashboard</span></div></div>
+    </div>
+
+    <div class="diff"><div class="diff-big">No commission, ever. You keep 100%.</div><div class="diff-sub">Your customers, your payments, your delivery — handled your way. Khao never touches the money.</div></div>
+
+    <div class="cta"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAhwAAAIcCAIAAAAynOArAAAKBElEQVR4nO3dwY3bWBRFwdGgE/DSMUz+oTgGLx0CHYEBYf6xnp5YtW+IIqk++Kv7uK7rHwAo/Dt9AQB8DlEBICMqAGREBYCMqACQERUAMqICQEZUAMiICgAZUQEgIyoAZEQFgIyoAJARFQAyogJARlQAyIgKABlRASAjKgBkvk7++L/v36rr4C/58fPX//7bk+c79bknTq75xNR9nuL/xvs7ea+cVADIiAoAGVEBICMqAGREBYCMqACQERUAMqICQEZUAMiICgAZUQEgIyoAZEQFgIyoAJARFQAyogJARlQAyIgKABlRASBztFF/YuO29pSNm+0b9+3vtp0+9YxO+L/xvKn32UkFgIyoAJARFQAyogJARlQAyIgKABlRASAjKgBkRAWAjKgAkBEVADKiAkBGVADIiAoAGVEBICMqAGREBYCMqACQERUAMmMb9Sc2bolv3NZ2n5+3ce/9brzPr+GkAkBGVADIiAoAGVEBICMqAGREBYCMqACQERUAMqICQEZUAMiICgAZUQEgIyoAZEQFgIyoAJARFQAyogJARlQAyIgKAJmVG/W8xsZ97I075FP79hufL+/PSQWAjKgAkBEVADKiAkBGVADIiAoAGVEBICMqAGREBYCMqACQERUAMqICQEZUAMiICgAZUQEgIyoAZEQFgIyoAJARFQAyNur5K6Z216ecXPPJvYJ346QCQEZUAMiICgAZUQEgIyoAZEQFgIyoAJARFQAyogJARlQAyIgKABlRASAjKgBkRAWAjKgAkBEVADKiAkBGVADIiAoAmZUb9Rs3zDeync4n8X/jNZxUAMiICgAZUQEgIyoAZEQFgIyoAJARFQAyogJARlQAyIgKABlRASAjKgBkRAWAjKgAkBEVADKiAkBGVADIiAoAGVEBIDO2UW///LOd7IGfvBtTn7vR1H0+cbdntJGTCgAZUQEgIyoAZEQFgIyoAJARFQAyogJARlQAyIgKABlRASAjKgBkRAWAjKgAkBEVADKiAkBGVADIiAoAGVEBICMqAGQe13VNXwMfaOOWuN31503dK96fkwoAGVEBICMqAGREBYCMqACQERUAMqICQEZUAMiICgAZUQEgIyoAZEQFgIyoAJARFQAyogJARlQAyIgKABlRASAjKgBkjjbqT7a1Tzaupz53ytSGuXv1/u72O3LN7/+5TioAZEQFgIyoAJARFQAyogJARlQAyIgKABlRASAjKgBkRAWAjKgAkBEVADKiAkBGVADIiAoAGVEBICMqAGREBYCMqACQ+Zr64LttiW/cqb7bM9q4B363zfYpG5/vFCcVADKiAkBGVADIiAoAGVEBICMqAGREBYCMqACQERUAMqICQEZUAMiICgAZUQEgIyoAZEQFgIyoAJARFQAyogJARlQAyDyu6xr5YJvPr3G3ezW1uz5l4+/obu/kiY3PyEkFgIyoAJARFQAyogJARlQAyIgKABlRASAjKgBkRAWAjKgAkBEVADKiAkBGVADIiAoAGVEBICMqAGREBYCMqACQERUAMl/TF3AXU9vpUzvVJzbukN/tPk9d84mNe+8npj7XSQWAjKgAkBEVADKiAkBGVADIiAoAGVEBICMqAGREBYCMqACQERUAMqICQEZUAMiICgAZUQEgIyoAZEQFgIyoAJARFQAyRxv1G7fEN9q4jz3lbu/k1O76iY3v88bf0dR9dlIBICMqAGREBYCMqACQERUAMqICQEZUAMiICgAZUQEgIyoAZEQFgIyoAJARFQAyogJARlQAyIgKABlRASAjKgBkRAWAzNFG/dRu89T28snnbrzmjabu1cbfwkYbn9GJjc/XSQWAjKgAkBEVADKiAkBGVADIiAoAGVEBICMqAGREBYCMqACQERUAMqICQEZUAMiICgAZUQEgIyoAZEQFgIyoAJARFQAyRxv1U/vJU1vTG3fIXfNrbNwS33ifN77PJ06+79Q1O6kAkBEVADKiAkBGVADIiAoAGVEBICMqAGREBYCMqACQERUAMqICQEZUAMiICgAZUQEgIyoAZEQFgIyoAJARFQAyogJA5nFd1/Q1vNTdtsQ3ft+Npp7Rxs32u73PU89oipMKABlRASAjKgBkRAWAjKgAkBEVADKiAkBGVADIiAoAGVEBICMqAGREBYCMqACQERUAMqICQEZUAMiICgAZUQEgIyoAZI426qf2ojduXN/tmk/cbbOd97fxvZq6ZicVADKiAkBGVADIiAoAGVEBICMqAGREBYCMqACQERUAMqICQEZUAMiICgAZUQEgIyoAZEQFgIyoAJARFQAyogJARlQAyBxt1PPZNu6ub9wSP3HyfTfun5/wfZ938n2dVADIiAoAGVEBICMqAGREBYCMqACQERUAMqICQEZUAMiICgAZUQEgIyoAZEQFgIyoAJARFQAyogJARlQAyIgKABlRASDzdfLHGzfM72ZqW3vjVvzJNW/cMJ9yt634u3FSASAjKgBkRAWAjKgAkBEVADKiAkBGVADIiAoAGVEBICMqAGREBYCMqACQERUAMqICQEZUAMiICgAZUQEgIyoAZEQFgMzRRv0JW9PPO9n0PrHxGU1d89Tu+tS7cWLjezVl4/N1UgEgIyoAZEQFgIyoAJARFQAyogJARlQAyIgKABlRASAjKgBkRAWAjKgAkBEVADKiAkBGVADIiAoAGVEBICMqAGREBYDM2Eb9iY27zXa5n7fx+d6NZ8SfOKkAkBEVADKiAkBGVADIiAoAGVEBICMqAGREBYCMqACQERUAMqICQEZUAMiICgAZUQEgIyoAZEQFgIyoAJARFQAyogJAZuVGPe/vZMP8x89f4ZU8b+M1u1fPO7nmjZ87dZ+dVADIiAoAGVEBICMqAGREBYCMqACQERUAMqICQEZUAMiICgAZUQEgIyoAZEQFgIyoAJARFQAyogJARlQAyIgKABlRASBjo54/mtoht3/+GlP36sTGnfmp38LUNTupAJARFQAyogJARlQAyIgKABlRASAjKgBkRAWAjKgAkBEVADKiAkBGVADIiAoAGVEBICMqAGREBYCMqACQERUAMqICQGblRv3Gbe2Npra1T0x97tS9utvnTpn6n7Pxf52TCgAZUQEgIyoAZEQFgIyoAJARFQAyogJARlQAyIgKABlRASAjKgBkRAWAjKgAkBEVADKiAkBGVADIiAoAGVEBICMqAGTGNuo37lTfzca99yne5+fd7flOfd+pa3ZSASAjKgBkRAWAjKgAkBEVADKiAkBGVADIiAoAGVEBICMqAGREBYCMqACQERUAMqICQEZUAMiICgAZUQEgIyoAZEQFgMzjuq7pawDgQzipAJARFQAyogJARlQAyIgKABlRASAjKgBkRAWAjKgAkBEVADKiAkBGVADIiAoAGVEBICMqAGREBYCMqACQERUAMqICQOY3iUKC92iWX48AAAAASUVORK5CYII=" alt="QR code to thekhao.com"><div><div class="cta-h">Scan to start free</div><div class="cta-big">Set up in 10 minutes. No commitment.</div><div class="cta-url">thekhao.com</div><div class="cta-q">Questions? hello@thekhao.com</div></div></div>
+  </div>
+  <div class="foot"><span><b>thekhao.com</b> &nbsp;·&nbsp; hello@thekhao.com</span><span>Ottawa, Canada</span></div>
+</div></body></html>

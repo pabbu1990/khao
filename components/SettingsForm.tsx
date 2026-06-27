@@ -59,6 +59,19 @@ export default function SettingsForm({ vendor }: { vendor: Vendor }) {
       </section>
 
       <section className="rounded-2xl border border-line bg-white p-4 shadow-card">
+        <div className="flex items-center gap-2">
+          <h2 className="text-xs font-semibold uppercase tracking-[0.07em] text-ink/45">Pickup location</h2>
+          <span className="rounded-full bg-curry/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.06em] text-curry">Recommended</span>
+        </div>
+        <p className="mt-1 text-sm text-ink/55">Add your pickup address so customers see exactly where to collect <strong className="text-ink/70">pickup</strong> orders on their confirmation page. Leave it blank and customers will be told you&rsquo;ll reach out with pickup instructions.</p>
+        <div className="mt-3">
+          <Labeled label="Pickup address">
+            <textarea name="pickup_location" defaultValue={vendor.pickup_location ?? ""} placeholder="e.g. 123 Greenbank Rd, Barrhaven — ring unit 4, text when you arrive" className="inp" />
+          </Labeled>
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-line bg-white p-4 shadow-card">
         <h2 className="text-xs font-semibold uppercase tracking-[0.07em] text-ink/45">Payment methods</h2>
         <p className="mt-0.5 text-sm text-ink/55">Choose which options customers can pick at checkout. At least one stays on.</p>
         <div className="mt-3 space-y-2.5">

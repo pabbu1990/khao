@@ -4,7 +4,7 @@ import HomeNav from "@/components/HomeNav";
 
 const STEPS = [
   { n: "01", t: "Build your menu", d: "Add dishes, photos and prices, grouped by service." },
-  { n: "02", t: "Share your link", d: "Drop your Khao link in your WhatsApp channel." },
+  { n: "02", t: "Share your link", d: "Share your Khao link by text, Instagram, WhatsApp — wherever your customers are." },
   { n: "03", t: "Orders land live", d: "Every order arrives on your dashboard in real time." },
 ];
 
@@ -33,12 +33,11 @@ export default function Home() {
 
       <div className="relative mx-auto max-w-4xl px-6 pb-20 pt-14">
         <h1 className="mt-8 max-w-2xl font-display text-5xl font-bold leading-[1.05] sm:text-6xl">
-          Take food orders without the WhatsApp chaos.
+          Orders lost in the <span className="text-spice">chat</span> again?
         </h1>
         <p className="mt-6 max-w-xl text-lg leading-relaxed text-cream/75">
-          Khao gives your home kitchen its own ordering page. Share the link in your WhatsApp
-          channel — customers pick what they want, fill in their details, and every order lands
-          on your live dashboard. No more counting messages.
+          Texts, DMs, group chats — and you&rsquo;re still counting them at 9pm. Khao gives your kitchen
+          one ordering link: customers tap, pick, and order, and every order lands on your live dashboard.
         </p>
 
         <div className="mt-10 flex flex-wrap items-center gap-5">
@@ -85,7 +84,7 @@ export default function Home() {
               <li className="flex items-center gap-2"><span className="text-spice">✓</span> Live order dashboard</li>
               <li className="flex items-center gap-2"><span className="text-spice">✓</span> Weekly menus by service</li>
               <li className="flex items-center gap-2"><span className="text-spice">✓</span> Unlimited orders</li>
-              <li className="flex items-center gap-2"><span className="text-spice">✓</span> Share via WhatsApp &amp; QR</li>
+              <li className="flex items-center gap-2"><span className="text-spice">✓</span> Share by text, social &amp; QR</li>
               <li className="flex items-center gap-2"><span className="text-spice">✓</span> No commission, ever</li>
             </ul>
             <Link href="/login?mode=signup" className="mt-7 inline-block rounded-xl bg-spice px-6 py-3 font-semibold text-ink transition hover:brightness-[1.04] active:scale-[.99]">

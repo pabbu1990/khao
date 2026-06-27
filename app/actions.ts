@@ -77,7 +77,7 @@ async function sendVendorWelcome(v: { email: string; name: string; slug: string 
     ``,
     `Your kitchen "${v.name}" is now set up. Here's how to start taking orders:`,
     `1. Build your menus — create a menu (like Weekday Lunch) and add dishes to it`,
-    `2. Share your link with customers on WhatsApp`,
+    `2. Share your link with customers — by text, social, or chat`,
     `3. Watch orders land live on your dashboard`,
     ``,
     `Your ordering page: ${link}`,
@@ -123,7 +123,7 @@ async function sendVendorWelcome(v: { email: string; name: string; slug: string 
         <tr><td style="padding:18px 32px 0 32px;">
           <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
             ${step("1", "Build your menus", "Create a menu (like Weekday Lunch) and add your dishes — prices and photos.")}
-            ${step("2", "Share your link", "Drop it in your WhatsApp groups, status, or chats.")}
+            ${step("2", "Share your link", "Share it by text, social, or your group chats.")}
             ${step("3", "Orders land live", "Every order appears instantly on your dashboard.")}
           </table>
         </td></tr>
@@ -241,6 +241,7 @@ export async function updateVendorSettings(formData: FormData): Promise<{ ok: bo
       accept_cash: acceptCash,
       accept_interac: acceptInterac,
       offline_instructions: String(formData.get("offline_instructions") || ""),
+      pickup_location: String(formData.get("pickup_location") || ""),
     })
     .eq("id", vendor.id);
   if (error) return { ok: false, error: error.message };
@@ -583,9 +584,9 @@ function outreachText(name?: string) {
   return [
     hi,
     "",
-    "Still counting WhatsApp messages to keep track of your orders?",
+    "Still counting messages to keep track of your orders?",
     "",
-    "Khao gives your kitchen one ordering link to share in your WhatsApp groups. Customers tap, pick, and order — and it all lands in one clean dashboard.",
+    "Khao gives your kitchen one ordering link to share by text, social, or chat. Customers tap, pick, and order — and it all lands in one clean dashboard.",
     "",
     "What you get:",
     "- Your own ordering page — just share one link",
@@ -628,8 +629,8 @@ function outreachHtml(name?: string) {
         </td></tr>
         <tr><td style="padding:22px 32px 0 32px;">
           <p style="margin:0;font-size:14px;color:#6f6457;">${hi}</p>
-          <p style="margin:8px 0 0 0;font-size:22px;line-height:1.32;font-weight:800;color:#2A1810;">Still counting WhatsApp messages to track your orders?</p>
-          <p style="margin:12px 0 0 0;font-size:16px;line-height:1.6;color:#6f6457;">Khao gives your kitchen <strong style="color:#2A1810;">one ordering link</strong> to share in your WhatsApp groups. Customers tap, pick, and order — and it all lands in one clean dashboard.</p>
+          <p style="margin:8px 0 0 0;font-size:22px;line-height:1.32;font-weight:800;color:#2A1810;">Still counting messages to track your orders?</p>
+          <p style="margin:12px 0 0 0;font-size:16px;line-height:1.6;color:#6f6457;">Khao gives your kitchen <strong style="color:#2A1810;">one ordering link</strong> to share by text, social, or chat. Customers tap, pick, and order — and it all lands in one clean dashboard.</p>
         </td></tr>
         <tr><td style="padding:16px 32px 0 32px;">
           <table role="presentation" cellpadding="0" cellspacing="0" width="100%">

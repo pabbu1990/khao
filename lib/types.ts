@@ -12,6 +12,7 @@ export interface Vendor {
   bio: string | null;
   area: string | null;
   hours: string | null;
+  pickup_location: string | null;
   logo_url: string | null;
   accept_offline: boolean;
   accept_cash: boolean;

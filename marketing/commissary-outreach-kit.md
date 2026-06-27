@@ -6,7 +6,7 @@
 
 ## Why commissary kitchens
 
-A shared/commissary kitchen has 10–50 food businesses under one roof, all of whom take orders and most of whom are stuck doing it over WhatsApp and Instagram DMs. You're not pitching one cook at a time — you're pitching the operator who can introduce you to **all of them at once**. And it's a win for the operator: a free tool that helps their tenants sell more makes their space more valuable.
+A shared/commissary kitchen has 10–50 food businesses under one roof, all of whom take orders and most of whom are stuck doing it across WhatsApp, Instagram DMs and texts. You're not pitching one cook at a time — you're pitching the operator who can introduce you to **all of them at once**. And it's a win for the operator: a free tool that helps their tenants sell more makes their space more valuable.
 
 **Target list — Ottawa (call or email the operator/manager):**
 
@@ -23,7 +23,7 @@ A shared/commissary kitchen has 10–50 food businesses under one roof, all of w
 
 ## The offer (keep it simple)
 
-> Free for your kitchen and your tenants. Khao gives each food business their own ordering page to share over WhatsApp — no commission, they keep 100% of every sale. I'll set up any tenant who wants it, in person, in 10 minutes. All I'm asking is an intro to your members (a flyer on the board, a mention in your tenant newsletter/WhatsApp, or 15 minutes at a tenant meeting).
+> Free for your kitchen and your tenants. Khao gives each food business their own ordering page to share wherever they sell — no commission, they keep 100% of every sale. I'll set up any tenant who wants it, in person, in 10 minutes. All I'm asking is an intro to your members (a flyer on the board, a mention in your tenant newsletter/WhatsApp, or 15 minutes at a tenant meeting).
 
 Why operators say yes: it costs them nothing, helps tenants make more money (stickier tenants = less churn), and positions them as the kitchen that gives members real tools.
 
@@ -35,7 +35,7 @@ Why operators say yes: it costs them nothing, helps tenants make more money (sti
 
 Hi [Name],
 
-I run Khao — it gives food businesses their own ordering page to share over WhatsApp, so they stop chasing orders across DMs. No marketplace, no commission; they keep 100% of every sale and handle payment and delivery their way.
+I run Khao — it gives food businesses their own ordering page to share wherever they sell, so they stop chasing orders across DMs and texts. No marketplace, no commission; they keep 100% of every sale and handle payment and delivery their way.
 
 A lot of your tenants are exactly who this helps. I'd love to offer it free to your kitchen's members and set up anyone who wants it in person — about 10 minutes each.
 
@@ -50,11 +50,11 @@ Thanks,
 
 ## In-person / phone script
 
-**Opener:** "Hi — I'm [name], I built a free tool for food businesses. A lot of your tenants take orders over WhatsApp and it gets messy. Khao gives each of them one ordering link to share — no commission, they keep everything. Mind if I leave a few flyers, or could I get 10 minutes with a couple of your members?"
+**Opener:** "Hi — I'm [name], I built a free tool for food businesses. A lot of your tenants take orders across WhatsApp, Instagram and texts and it gets messy. Khao gives each of them one ordering link to share — no commission, they keep everything. Mind if I leave a few flyers, or could I get 10 minutes with a couple of your members?"
 
 **If "what's in it for us?":** "Costs you nothing. It helps your tenants sell more and look professional, which makes your space stickier. I do all the setup — you just point me at whoever's interested."
 
-**If "we already have X":** "Totally — this isn't a kitchen or a delivery service, it sits on top of however they already cook and deliver. It just replaces the WhatsApp order chaos with one clean link. No commission, unlike the marketplaces."
+**If "we already have X":** "Totally — this isn't a kitchen or a delivery service, it sits on top of however they already cook and deliver. It just replaces the order chaos across chats with one clean link. No commission, unlike the marketplaces."
 
 **Close:** "Can I leave these flyers by the sign-in / on the board? And if you have a tenant WhatsApp or newsletter, one line from you would go a long way. I'll handle the rest."
 
@@ -62,9 +62,9 @@ Thanks,
 
 ## Tenant-facing flyer / board copy
 
-**Headline:** Still taking orders over WhatsApp?
+**Headline:** Still chasing orders across chats?
 
-**Body:** Khao gives your kitchen its own ordering page — one link to share in your WhatsApp groups and Instagram. Customers tap, pick, and order. Everything lands in one place.
+**Body:** Khao gives your kitchen its own ordering page — one link to share wherever your customers are: WhatsApp, Instagram, a text. Customers tap, pick, and order. Everything lands in one place.
 
 - No commission — you keep 100%
 - You handle payment & delivery your way
@@ -72,7 +72,9 @@ Thanks,
 
 **Call to action:** Scan the code or go to **thekhao.com**. Want help setting it up? Text [your number] — it's free.
 
-*(Use your existing Khao flyer + QR for the printed version; this is the copy for a board notice or a tenant-WhatsApp message.)*
+*(Use your existing Khao flyer + QR for the printed version; this is the copy for a board notice or a tenant message.)*
+
+> **Tip:** swap the named channel to match where the community actually lives — name WhatsApp for a WhatsApp-heavy group, Instagram or Facebook otherwise. Speaking their exact channel converts better than a generic line.
 
 ---
 

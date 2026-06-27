@@ -10,7 +10,7 @@ export default async function OrderConfirmation({ params }: { params: { slug: st
 
   const { data: order } = await admin
     .from("orders")
-    .select("*, vendors!inner(slug,name,offline_instructions), order_items(*)")
+    .select("*, vendors!inner(slug,name,offline_instructions,pickup_location), order_items(*)")
     .eq("id", params.id)
     .maybeSingle();
 
@@ -39,6 +39,18 @@ export default async function OrderConfirmation({ params }: { params: { slug: st
         <div className="flex justify-between border-t border-ink/10 pt-3 font-semibold text-ink">
           <span>Total</span><span>{money(Number(order.subtotal_cad))}</span>
         </div>
+
+        {order.fulfilment === "pickup" && (
+          <div className="mt-5 rounded-lg border border-curry/30 bg-curry/[0.06] p-3 text-sm text-ink">
+            <p className="flex items-center gap-1.5 font-semibold">
+              <svg viewBox="0 0 24 24" className="h-4 w-4 text-curry" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
+              Pickup location
+            </p>
+            {order.vendors.pickup_location
+              ? <p className="mt-1 whitespace-pre-line text-ink/70">{order.vendors.pickup_location}</p>
+              : <p className="mt-1 text-ink/70">{order.vendors.name} will reach out with pickup instructions.</p>}
+          </div>
+        )}
 
         {order.payment_label && (
           <div className="mt-5 rounded-lg border border-spice/40 bg-spice/10 p-3 text-sm text-ink">

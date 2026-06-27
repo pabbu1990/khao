@@ -216,7 +216,7 @@ function GettingStarted({ vendorName, hasServices, hasDishes, justDid }: { vendo
           cta="Add dishes" href="/dashboard/menu" />
         <SetupStep n={3} done={false} active={false} locked
           title="Share your link with customers"
-          desc="Once your menu's ready, share your page on WhatsApp — every order lands right here on this dashboard." />
+          desc="Once your menu's ready, share your page by text, social, or WhatsApp — every order lands right here on this dashboard." />
       </div>
     </div>
   );

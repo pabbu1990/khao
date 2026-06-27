@@ -65,7 +65,7 @@ Engage genuinely (Reddit punishes ads). Answer questions, mention Khao only wher
 ## 7. Content & PR
 
 - Publish the **"How to start a ghost kitchen in Ontario" guide** on your site → ranks for high-intent searches, shareable in every group above.
-- Pitch local outlets a story: "local founder builds a free tool helping home cooks ditch WhatsApp chaos and keep 100% of sales" (CBC Ottawa, CTV Ottawa, community papers, food bloggers).
+- Pitch local outlets a story: "local founder builds a free tool helping home cooks ditch the order chaos across chats and keep 100% of sales" (CBC Ottawa, CTV Ottawa, community papers, food bloggers).
 - Repurpose the guide into IG carousels + TikTok/Reels.
 
 ## 8. Referral + viral loop (turn on once you have a few vendors)

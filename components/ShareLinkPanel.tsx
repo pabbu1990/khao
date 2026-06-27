@@ -39,7 +39,7 @@ export default function ShareLinkPanel({ link }: { link: string }) {
       {open && (
         <div className="border-t border-line px-4 pb-4 pt-3">
           <p className="mb-3 max-w-2xl text-sm text-ink/55">
-            Send this to your customers — drop it in your WhatsApp groups, status, or chats. They tap it to browse your menu and order, and every order lands right here.
+            Send this to your customers — copy it and share whichever way you like: a text, your social, WhatsApp, or a group chat. They tap it to browse your menu and order, and every order lands right here.
           </p>
           <ShareLink link={link} />
         </div>

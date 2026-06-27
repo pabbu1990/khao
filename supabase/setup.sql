@@ -132,6 +132,7 @@ alter table public.dishes       add column if not exists service_id uuid referen
 alter table public.order_items   add column if not exists service_snapshot text;
 alter table public.services      add column if not exists service_date date;
 alter table public.services      add column if not exists service_dates date[] not null default '{}';
+alter table public.vendors      add column if not exists pickup_location text;
 
 -- ---------- helper: is the current user an admin? ----------
 create or replace function public.is_admin()

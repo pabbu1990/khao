@@ -52,7 +52,7 @@ If the math only works at a price customers won't pay, change the menu — not y
 
 In Ottawa, options include Canotek Kitchen, Harvest Commercial Kitchen, The Cauldron Kitchen, The Shared Commercial Kitchen, Partake Collective, and Delights by Mama (Stittsville). Most offer hourly rental and a path to your own food-premises approval.
 
-## Step 5 — Take orders without the WhatsApp chaos
+## Step 5 — Take orders without chasing chats
 
 Here's where most home kitchens drown. Orders come in over WhatsApp, Instagram DMs, texts, and "can you add one more?" messages — and you're scrolling three apps at 9pm trying to remember who ordered what.
 
@@ -62,13 +62,13 @@ You have three options:
 2. **List on a marketplace** (Uber Eats / DoorDash) — they bring some discovery, but take **~20–30% commission**, own your customer relationship, and most require a licensed commercial kitchen anyway.
 3. **Get your own ordering page** — a single link customers tap to see your menu and place an order, with everything landing in one organized list.
 
-That third option is exactly why we built **[Khao](https://thekhao.com)**: your own ordering page to share in your WhatsApp groups and Instagram bio. **No commission — you keep 100%.** You handle payment and delivery your way (cash, e-transfer, pickup, your own driver). It's free to start, and setup takes about 10 minutes.
+That third option is exactly why we built **[Khao](https://thekhao.com)**: your own ordering page to share wherever your customers are — WhatsApp or Facebook groups, your Instagram bio, a broadcast text. **No commission — you keep 100%.** You handle payment and delivery your way (cash, e-transfer, pickup, your own driver). It's free to start, and setup takes about 10 minutes.
 
 ## Step 6 — Get your first 10 customers
 
 You don't need an audience — you need ten orders. Where they come from:
 
-- **Your existing chats and WhatsApp groups** — post your menu + ordering link. This is your warmest channel.
+- **Your existing chats and groups** (WhatsApp, Facebook, community groups) — post your menu + ordering link. This is your warmest channel.
 - **Your community** — coworkers, your apartment building, your gym, parents at school, your place of worship.
 - **A QR code** on a flyer at a commissary kitchen, community board, or grocery store.
 - **One great dish photo** posted weekly on Instagram, with the order link in your bio.
@@ -101,9 +101,9 @@ A kitchen with 30 weekly regulars beats one chasing 300 strangers.
 - [ ] Line up a kitchen (home or commissary)
 - [ ] Price with food cost + packaging + your time
 - [ ] Set up an ordering link customers can tap ([Khao](https://thekhao.com) — free, no commission)
-- [ ] Post your menu + link in your WhatsApp groups and Instagram bio
+- [ ] Post your menu + link wherever your customers are — WhatsApp/Facebook groups, your Instagram bio, a broadcast text
 - [ ] Get 10 orders, then ask each for a referral
 
 ---
 
-*Khao gives home and ghost kitchens their own ordering page to share over WhatsApp — no marketplace, no commission, you keep your customers. [Start free at thekhao.com](https://thekhao.com).*
+*Khao gives home and ghost kitchens their own ordering page to share anywhere they reach customers — no marketplace, no commission, you keep your customers. [Start free at thekhao.com](https://thekhao.com).*

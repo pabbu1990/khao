@@ -22,7 +22,7 @@ export default async function SettingsPage() {
         <h1 className="font-display text-2xl font-bold text-ink">Settings</h1>
         <p className="mt-1 text-sm text-ink/50">Manage your kitchen profile, ordering link, and payment options.</p>
 
-        <Section title="Ordering link" desc="Share this with customers in WhatsApp — every order lands on your dashboard.">
+        <Section title="Ordering link" desc="Share this with customers by text, social, or WhatsApp — every order lands on your dashboard.">
           <ShareLink link={link} />
         </Section>
 
