@@ -50,7 +50,10 @@ export default function SettingsForm({ vendor }: { vendor: Vendor }) {
       <section className="rounded-2xl border border-line bg-white p-4 shadow-card">
         <h2 className="text-xs font-semibold uppercase tracking-[0.07em] text-ink/45">Kitchen profile</h2>
         <div className="mt-3 space-y-3">
-          <Labeled label="Kitchen name"><input name="name" defaultValue={vendor.name} className="inp" /></Labeled>
+          <div>
+            <Labeled label="Kitchen name"><input name="name" defaultValue={vendor.name} className="inp" /></Labeled>
+            <p className="mt-1 text-xs text-ink/45">Rename anytime — your link <span className="font-medium text-ink/60">/{vendor.slug}</span> stays the same, so shared links never break.</p>
+          </div>
 
           <div>
             <span className="text-sm font-medium text-ink/70">Link name (your page address)</span>
