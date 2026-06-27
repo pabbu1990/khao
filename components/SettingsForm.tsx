@@ -12,6 +12,7 @@ export default function SettingsForm({ vendor }: { vendor: Vendor }) {
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [cash, setCash] = useState(vendor.accept_cash);
   const [interac, setInterac] = useState(vendor.accept_interac);
+  const [instructions, setInstructions] = useState(vendor.offline_instructions ?? "");
   const [proInterest, setProInterest] = useState(!!vendor.pro_interest_at);
   const [proBusy, setProBusy] = useState(false);
 
@@ -95,6 +96,15 @@ export default function SettingsForm({ vendor }: { vendor: Vendor }) {
             name="accept_interac" checked={interac} onChange={setInterac}
             title="Interac e-transfer" desc="Customers send to your email or phone"
           />
+          {interac ? (
+            <div className="ml-3 border-l-2 border-curry/20 pl-4">
+              <Labeled label="Where do customers send the e-transfer?">
+                <textarea name="offline_instructions" value={instructions} onChange={(e) => setInstructions(e.target.value)} placeholder="e.g. Send Interac e-transfer to payments@mykitchen.com" className="inp" />
+              </Labeled>
+            </div>
+          ) : (
+            <input type="hidden" name="offline_instructions" value={instructions} />
+          )}
           <div className="rounded-xl border border-dashed border-ink/15 bg-panel/40 px-4 py-3">
             <div className="flex items-center justify-between gap-3">
               <span className="flex items-start gap-2.5">
@@ -131,11 +141,6 @@ export default function SettingsForm({ vendor }: { vendor: Vendor }) {
             You need at least one payment method. If you leave both off, we&rsquo;ll keep <strong>Cash</strong> on when you save.
           </p>
         )}
-        <div className="mt-3">
-          <Labeled label="Interac e-transfer details (the email/phone customers send to)" optional>
-            <textarea name="offline_instructions" defaultValue={vendor.offline_instructions ?? ""} placeholder="e.g. Send Interac e-transfer to payments@mykitchen.com" className="inp" />
-          </Labeled>
-        </div>
       </section>
 
       <div className="flex flex-wrap items-center gap-3">
