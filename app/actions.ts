@@ -249,6 +249,15 @@ export async function updateVendorSettings(formData: FormData): Promise<{ ok: bo
   return { ok: true, note: paymentNote };
 }
 
+export async function requestProInterest(): Promise<{ ok: boolean; error?: string }> {
+  const { supabase, vendor } = await getMyVendor();
+  if (!vendor) return { ok: false, error: "No kitchen found." };
+  const { error } = await supabase.from("vendors").update({ pro_interest_at: new Date().toISOString() }).eq("id", vendor.id);
+  if (error) return { ok: false, error: error.message };
+  revalidatePath("/dashboard/settings");
+  return { ok: true };
+}
+
 // ---------- services (meal-time menus) ----------
 export async function addService(formData: FormData): Promise<{ ok: boolean; error?: string }> {
   const { supabase, vendor } = await getMyVendor();

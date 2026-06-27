@@ -13,6 +13,7 @@ export interface Vendor {
   area: string | null;
   hours: string | null;
   pickup_location: string | null;
+  pro_interest_at: string | null;
   logo_url: string | null;
   accept_offline: boolean;
   accept_cash: boolean;

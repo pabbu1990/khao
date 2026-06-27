@@ -108,6 +108,10 @@ export default async function AdminPage() {
     .sort((a, b) => b.orders - a.orders)
     .slice(0, 5);
 
+  const proInterested = list
+    .filter((v) => v.pro_interest_at)
+    .sort((a, b) => (b.pro_interest_at! > a.pro_interest_at! ? 1 : -1));
+
   return (
     <main className="min-h-screen bg-cream">
       <header className="bg-ink text-cream px-5 py-3 flex items-center justify-between">
@@ -185,6 +189,25 @@ export default async function AdminPage() {
                   <div key={x.v.id} className="flex items-center justify-between text-sm">
                     <span className="text-ink"><span className="text-ink/40">{i + 1}.</span> {x.v.name}</span>
                     <span className="text-ink/60">{x.orders} orders · {money(x.rev)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="rounded-xl bg-white p-4 shadow-card lg:col-span-2">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold text-ink">Pro interest <span className="text-ink/40">({proInterested.length})</span></p>
+              <span className="rounded-full bg-spice/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.06em] text-[#9a5a14]">Card payments</span>
+            </div>
+            <p className="text-xs text-ink/40">Vendors who tapped &ldquo;I&rsquo;m interested&rdquo; on Pro card payments</p>
+            {proInterested.length === 0 ? (
+              <p className="mt-2 text-xs text-ink/40">No interest yet.</p>
+            ) : (
+              <div className="mt-2 space-y-1.5">
+                {proInterested.slice(0, 10).map((v) => (
+                  <div key={v.id} className="flex items-center justify-between text-sm">
+                    <span><Link href={`/admin/vendor/${v.id}`} className="font-semibold text-ink hover:text-spice">{v.name}</Link> <span className="text-ink/40">/{v.slug}</span></span>
+                    <span className="whitespace-nowrap text-xs text-ink/50">{relative(v.pro_interest_at!)}</span>
                   </div>
                 ))}
               </div>

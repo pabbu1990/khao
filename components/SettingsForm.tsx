@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Spinner from "@/components/Spinner";
 import { useRouter } from "next/navigation";
-import { updateVendorSettings } from "@/app/actions";
+import { updateVendorSettings, requestProInterest } from "@/app/actions";
 import type { Vendor } from "@/lib/types";
 
 export default function SettingsForm({ vendor }: { vendor: Vendor }) {
@@ -12,6 +12,15 @@ export default function SettingsForm({ vendor }: { vendor: Vendor }) {
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [cash, setCash] = useState(vendor.accept_cash);
   const [interac, setInterac] = useState(vendor.accept_interac);
+  const [proInterest, setProInterest] = useState(!!vendor.pro_interest_at);
+  const [proBusy, setProBusy] = useState(false);
+
+  async function notifyPro() {
+    setProBusy(true);
+    const res = await requestProInterest();
+    setProBusy(false);
+    if (res?.ok) setProInterest(true);
+  }
 
   useEffect(() => {
     if (msg?.ok) {
@@ -83,6 +92,36 @@ export default function SettingsForm({ vendor }: { vendor: Vendor }) {
             name="accept_interac" checked={interac} onChange={setInterac}
             title="Interac e-transfer" desc="Customers send to your email or phone"
           />
+          <div className="rounded-xl border border-dashed border-ink/15 bg-panel/40 px-4 py-3">
+            <div className="flex items-center justify-between gap-3">
+              <span className="flex items-start gap-2.5">
+                <svg viewBox="0 0 24 24" className="mt-0.5 h-4 w-4 shrink-0 text-ink/35" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+                <span>
+                  <span className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-ink/65">Card payments</span>
+                    <span className="rounded-full bg-spice/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.06em] text-[#9a5a14]">Pro</span>
+                  </span>
+                  <span className="mt-0.5 block text-xs text-ink/45">Let customers pay by card at checkout — funds go straight to you via Stripe. Available with Khao Pro.</span>
+                </span>
+              </span>
+              <span className="flex shrink-0 flex-col items-end gap-2">
+                <span aria-hidden="true" className="relative h-6 w-11 rounded-full bg-ink/15 opacity-70">
+                  <span className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow" />
+                </span>
+                {!proInterest && (
+                  <button type="button" onClick={notifyPro} disabled={proBusy} className="rounded-lg border border-spice/50 px-3 py-1 text-xs font-semibold text-[#9a5a14] transition hover:bg-spice/10 disabled:opacity-60">
+                    {proBusy ? "…" : "I’m interested"}
+                  </button>
+                )}
+              </span>
+            </div>
+            {proInterest && (
+              <div className="mt-2.5 flex items-start gap-2 border-t border-ink/10 pt-2.5 text-xs font-medium text-curry">
+                <svg viewBox="0 0 24 24" className="mt-px h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+                <span>Your interest is captured — someone from Khao will reach out to you.</span>
+              </div>
+            )}
+          </div>
         </div>
         {noPayment && (
           <p className="mt-3 rounded-lg bg-spice/10 px-3 py-2 text-sm text-ink/70">

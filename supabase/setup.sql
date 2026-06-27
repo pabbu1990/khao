@@ -133,6 +133,7 @@ alter table public.order_items   add column if not exists service_snapshot text;
 alter table public.services      add column if not exists service_date date;
 alter table public.services      add column if not exists service_dates date[] not null default '{}';
 alter table public.vendors      add column if not exists pickup_location text;
+alter table public.vendors      add column if not exists pro_interest_at timestamptz;
 
 -- ---------- helper: is the current user an admin? ----------
 create or replace function public.is_admin()
