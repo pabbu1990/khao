@@ -2,6 +2,7 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { money, ORDER_STATUS_LABEL } from "@/lib/format";
+import { parseSnapshot, snapshotText } from "@/lib/options";
 
 export const dynamic = "force-dynamic";
 
@@ -29,10 +30,10 @@ export default async function OrderConfirmation({ params }: { params: { slug: st
         </div>
 
         <ul className="mt-4 divide-y divide-ink/10">
-          {order.order_items.map((it: { id: string; qty: number; name_snapshot: string; price_snapshot: number }) => (
-            <li key={it.id} className="flex justify-between py-2 text-ink">
-              <span>{it.qty} × {it.name_snapshot}</span>
-              <span>{money(Number(it.price_snapshot) * it.qty)}</span>
+          {order.order_items.map((it: { id: string; qty: number; name_snapshot: string; price_snapshot: number; options_snapshot: unknown }) => (
+            <li key={it.id} className="flex justify-between gap-3 py-2 text-ink">
+              <span className="min-w-0">{it.qty} × {it.name_snapshot}{parseSnapshot(it.options_snapshot).length > 0 && <span className="block text-xs text-ink/50">{snapshotText(parseSnapshot(it.options_snapshot))}</span>}</span>
+              <span className="shrink-0">{money(Number(it.price_snapshot) * it.qty)}</span>
             </li>
           ))}
         </ul>

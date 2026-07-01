@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import PendingButton from "@/components/PendingButton";
 import { setPaymentStatus } from "@/app/actions";
 import { money, ORDER_STATUS_LABEL, menuItemsOf, menuPortion } from "@/lib/format";
+import { parseSnapshot, snapshotText } from "@/lib/options";
 import type { Order, OrderItem } from "@/lib/types";
 
 type Row = Order & { order_items: OrderItem[] };
@@ -94,7 +95,7 @@ function ReportCard({ o, menu }: { o: Row; menu: string }) {
         <>
           <div className="mt-2.5 text-sm text-ink/80">
             {items.map((it) => (
-              <div key={it.id}>{it.qty} × {it.name_snapshot}{it.service_snapshot ? <span className="text-ink/40"> · {it.service_snapshot}</span> : null}</div>
+              <div key={it.id}>{it.qty} × {it.name_snapshot}{it.service_snapshot ? <span className="text-ink/40"> · {it.service_snapshot}</span> : null}{parseSnapshot(it.options_snapshot).length > 0 ? <span className="block pl-3 text-xs text-ink/45">{snapshotText(parseSnapshot(it.options_snapshot))}</span> : null}</div>
             ))}
           </div>
           <p className="mt-2 text-[13px] text-ink/45">
@@ -259,7 +260,7 @@ export default function ReportTable({ rows, menu, menuLabel, breakdown, range, s
                 </td>
                 <td className="px-4 py-3 text-ink/80">
                   {itemsOf(o).map((it) => (
-                    <div key={it.id}>{it.qty} × {it.name_snapshot}{it.service_snapshot ? <span className="text-ink/40"> · {it.service_snapshot}</span> : null}</div>
+                    <div key={it.id}>{it.qty} × {it.name_snapshot}{it.service_snapshot ? <span className="text-ink/40"> · {it.service_snapshot}</span> : null}{parseSnapshot(it.options_snapshot).length > 0 ? <span className="block pl-3 text-xs text-ink/45">{snapshotText(parseSnapshot(it.options_snapshot))}</span> : null}</div>
                   ))}
                 </td>
                 <td className="px-4 py-3 text-right font-semibold text-ink whitespace-nowrap">{money(amountOf(o))}</td>

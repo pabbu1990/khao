@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { compressImage } from "@/lib/compressImage";
 import { addDish } from "@/app/actions";
+import DishOptionsEditor from "@/components/DishOptionsEditor";
+import type { OptionGroup } from "@/lib/options";
 
 const MAX_MB = 25;
 
@@ -18,6 +20,8 @@ export default function AddDishForm({ vendorId, services, onboarding = false }: 
   const [description, setDescription] = useState("");
   const [serviceId, setServiceId] = useState(services[0]?.id ?? "");
   const [veg, setVeg] = useState(false);
+  const [options, setOptions] = useState<OptionGroup[]>([]);
+  const [showOpts, setShowOpts] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -74,9 +78,10 @@ export default function AddDishForm({ vendorId, services, onboarding = false }: 
       if (serviceId) fd.set("service_id", serviceId);
       if (veg) fd.set("veg", "on");
       if (photoUrl) fd.set("photo_url", photoUrl);
+      fd.set("options", JSON.stringify(options));
       const res = await addDish(fd);
       if (!res.ok) { setErr(res.error || "Couldn't add the dish."); return; }
-      setName(""); setPrice(""); setDescription(""); setVeg(false);
+      setName(""); setPrice(""); setDescription(""); setVeg(false); setOptions([]); setShowOpts(false);
       removePhoto();
       setMsg("Dish added — add another below.");
       if (onboarding) setShowFinish(true);
@@ -141,6 +146,17 @@ export default function AddDishForm({ vendorId, services, onboarding = false }: 
               <input placeholder="Optional — a short line about the dish" value={description} onChange={(e) => setDescription(e.target.value)} className="w-full rounded-lg border border-ink/15 px-3 py-2.5" />
             </label>
           </div>
+        </div>
+
+        <div className="mt-4 border-t border-line pt-4">
+          {showOpts || options.length ? (
+            <DishOptionsEditor groups={options} onChange={setOptions} />
+          ) : (
+            <button type="button" onClick={() => setShowOpts(true)} className="inline-flex items-center gap-2 text-sm font-semibold text-[#9a5a14] transition hover:brightness-110">
+              <span className="grid h-5 w-5 shrink-0 place-items-center rounded-md border border-spice/40"><svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg></span>
+              Add options <span className="font-normal text-ink/40">(spice level, sizes, add-ons) · optional</span>
+            </button>
+          )}
         </div>
 
         <div className="mt-4 flex items-center justify-between gap-4 border-t border-line pt-4">

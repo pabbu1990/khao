@@ -8,12 +8,15 @@ import DishServiceSelect from "@/components/DishServiceSelect";
 import { money } from "@/lib/format";
 import Logo from "@/components/Logo";
 import type { Dish } from "@/lib/types";
+import DishOptionsEditor from "@/components/DishOptionsEditor";
+import { parseOptions, type OptionGroup } from "@/lib/options";
 
 export default function MenuDishRow({ d, services, today, open, vendorLogo }: { d: Dish; services: { id: string; name: string }[]; today: number; open: number; vendorLogo?: string | null }) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState(false);
   const [editErr, setEditErr] = useState<string | null>(null);
+  const [options, setOptions] = useState<OptionGroup[]>(() => parseOptions(d.options));
 
   async function save(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -33,6 +36,8 @@ export default function MenuDishRow({ d, services, today, open, vendorLogo }: { 
         <input name="name" required defaultValue={d.name} placeholder="Dish name" className="w-full rounded-lg border border-ink/15 px-3 py-2" />
         <input name="description" defaultValue={d.description ?? ""} placeholder="Description (optional)" className="w-full rounded-lg border border-ink/15 px-3 py-2" />
         <input name="price_cad" type="number" step="any" min="0" required defaultValue={Number(d.price_cad)} placeholder="Price (CAD)" className="w-full rounded-lg border border-ink/15 px-3 py-2" />
+        <div className="pt-1"><DishOptionsEditor groups={options} onChange={setOptions} /></div>
+        <input type="hidden" name="options" value={JSON.stringify(options)} />
         {editErr && <p className="text-sm text-chili">{editErr}</p>}
         <div className="flex gap-2 pt-1">
           <button disabled={busy} className="rounded-lg bg-spice px-4 py-2 text-sm font-semibold text-ink disabled:opacity-60">{busy ? "Saving…" : "Save"}</button>

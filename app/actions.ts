@@ -4,6 +4,11 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { OrderStatus, Fulfilment, PayMethod } from "@/lib/types";
+import { parseOptions, normalizeForSave, applySelections, type Selection, type OptionGroup } from "@/lib/options";
+
+function optionsFromForm(fd: FormData): OptionGroup[] {
+  try { return normalizeForSave(JSON.parse(String(fd.get("options") || "[]"))); } catch { return []; }
+}
 
 // ---------- helpers ----------
 async function requireUser() {
@@ -319,6 +324,7 @@ export async function addDish(formData: FormData): Promise<{ ok: boolean; error?
   if (!name) return { ok: false, error: "Enter a dish name." };
   const price = Number(formData.get("price_cad") || 0);
   if (!(price > 0)) return { ok: false, error: "Enter a price greater than $0." };
+  const optAdd = optionsFromForm(formData);
   const { error } = await supabase.from("dishes").insert({
     vendor_id: vendor.id,
     service_id: String(formData.get("service_id") || "") || null,
@@ -327,6 +333,7 @@ export async function addDish(formData: FormData): Promise<{ ok: boolean; error?
     price_cad: price,
     veg: formData.get("veg") === "on",
     photo_url: String(formData.get("photo_url") || "") || null,
+    options: optAdd.length ? optAdd : null,
   });
   if (error) return { ok: false, error: "Couldn't add the dish. Please try again." };
   revalidatePath("/dashboard/menu");
@@ -343,10 +350,12 @@ export async function updateDish(formData: FormData): Promise<{ ok: boolean; err
   if (!name) return { ok: false, error: "Enter a dish name." };
   const price = Number(formData.get("price_cad") || 0);
   if (!(price > 0)) return { ok: false, error: "Enter a price greater than $0." };
+  const optUpd = optionsFromForm(formData);
   await supabase.from("dishes").update({
     name,
     description: String(formData.get("description") || "") || null,
     price_cad: price,
+    options: optUpd.length ? optUpd : null,
   }).eq("id", id).eq("vendor_id", vendor.id);
   revalidatePath("/dashboard/menu");
   return { ok: true };
@@ -444,7 +453,7 @@ export interface PlaceOrderInput {
   note: string;
   paymentMethod: PayMethod;
   paymentLabel: string;
-  items: { dishId: string; qty: number }[];
+  items: { dishId: string; qty: number; selections?: Selection[] }[];
 }
 
 // Public: placed by a guest. Uses service role to insert + read back the id.
@@ -463,7 +472,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<{ ok: boolean;
 
   const { data: dishes } = await admin
     .from("dishes")
-    .select("id,name,price_cad,is_sold_out,is_active,vendor_id,services(name)")
+    .select("id,name,price_cad,is_sold_out,is_active,vendor_id,options,services(name)")
     .in("id", ids)
     .eq("vendor_id", input.vendorId);
 
@@ -472,19 +481,22 @@ export async function placeOrder(input: PlaceOrderInput): Promise<{ ok: boolean;
   let subtotal = 0;
   const items = input.items.map((line) => {
     const d = dishes.find((x) => x.id === line.dishId) as
-      | { id: string; name: string; price_cad: number; is_sold_out: boolean; is_active: boolean; services: { name: string } | null }
+      | { id: string; name: string; price_cad: number; is_sold_out: boolean; is_active: boolean; options: unknown; services: { name: string } | null }
       | undefined;
     if (!d || d.is_sold_out || !d.is_active) return null;
     const qty = Math.max(1, Math.floor(line.qty));
-    subtotal += Number(d.price_cad) * qty;
+    const { delta, snapshot } = applySelections(parseOptions(d.options), line.selections ?? []);
+    const unit = Number(d.price_cad) + delta;
+    subtotal += unit * qty;
     return {
       dish_id: d.id,
       name_snapshot: d.name,
       service_snapshot: d.services?.name ?? null,
-      price_snapshot: d.price_cad,
+      price_snapshot: unit,
       qty,
+      options_snapshot: snapshot.length ? snapshot : null,
     };
-  }).filter(Boolean) as { dish_id: string; name_snapshot: string; service_snapshot: string | null; price_snapshot: number; qty: number }[];
+  }).filter(Boolean) as { dish_id: string; name_snapshot: string; service_snapshot: string | null; price_snapshot: number; qty: number; options_snapshot: unknown }[];
 
   if (items.length === 0) return { ok: false, error: "All selected items are unavailable." };
 

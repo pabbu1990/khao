@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import type { Dish, Vendor, Fulfilment } from "@/lib/types";
 import { money, formatServiceDates } from "@/lib/format";
 import { placeOrder } from "@/app/actions";
+import DishOptionsSheet from "@/components/DishOptionsSheet";
+import { parseOptions, applySelections, hasOptions, snapshotText, selectionKey, type Selection, type SelectedOption } from "@/lib/options";
 import MenuRefresher from "@/components/MenuRefresher";
 import Logo from "@/components/Logo";
 
@@ -46,7 +48,9 @@ type Group = { service: { id: string; name: string; description: string | null; 
 export default function Storefront({ vendor, groups }: { vendor: Vendor; groups: Group[] }) {
   const router = useRouter();
   const allDishes = useMemo(() => groups.flatMap((g) => g.dishes), [groups]);
-  const [cart, setCart] = useState<Record<string, number>>({});
+  type Line = { key: string; dish: Dish; qty: number; selections: Selection[]; snapshot: SelectedOption[]; unit: number };
+  const [cart, setCart] = useState<Line[]>([]);
+  const [sheetDish, setSheetDish] = useState<Dish | null>(null);
   const [checkout, setCheckout] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -64,12 +68,8 @@ export default function Storefront({ vendor, groups }: { vendor: Vendor; groups:
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [noteOpen, setNoteOpen] = useState(false);
 
-  const lines = useMemo(
-    () => allDishes.filter((d) => cart[d.id] > 0).map((d) => ({ dish: d, qty: cart[d.id] })),
-    [cart, allDishes]
-  );
-  const subtotal = lines.reduce((s, l) => s + Number(l.dish.price_cad) * l.qty, 0);
-  const count = lines.reduce((s, l) => s + l.qty, 0);
+  const subtotal = cart.reduce((s, l) => s + l.unit * l.qty, 0);
+  const count = cart.reduce((s, l) => s + l.qty, 0);
 
   const q = query.trim().toLowerCase();
   const showNav = groups.length > 1 || allDishes.length >= 8;
@@ -112,13 +112,18 @@ export default function Storefront({ vendor, groups }: { vendor: Vendor; groups:
     return () => obs.disconnect();
   }, [groups, q, showNav, checkout]);
 
-  function set(id: string, delta: number) {
+  function addConfigured(dish: Dish, selections: Selection[], qty = 1) {
+    const { delta, snapshot } = applySelections(parseOptions(dish.options), selections);
+    const unit = Number(dish.price_cad) + delta;
+    const key = selectionKey(dish.id, selections);
     setCart((c) => {
-      const q = Math.max(0, (c[id] || 0) + delta);
-      const next = { ...c, [id]: q };
-      if (q === 0) delete next[id];
-      return next;
+      const i = c.findIndex((l) => l.key === key);
+      if (i >= 0) { const n = [...c]; n[i] = { ...n[i], qty: n[i].qty + qty }; return n; }
+      return [...c, { key, dish, qty, selections, snapshot, unit }];
     });
+  }
+  function adjust(key: string, delta: number) {
+    setCart((c) => c.map((l) => (l.key === key ? { ...l, qty: Math.max(0, l.qty + delta) } : l)).filter((l) => l.qty > 0));
   }
 
   async function submit(e: React.FormEvent) {
@@ -144,7 +149,7 @@ export default function Storefront({ vendor, groups }: { vendor: Vendor; groups:
         form.payChoice === "interac"
           ? "Interac e-transfer"
           : form.fulfilment === "delivery" ? "Cash on delivery" : "Cash on pickup",
-      items: lines.map((l) => ({ dishId: l.dish.id, qty: l.qty })),
+      items: cart.map((l) => ({ dishId: l.dish.id, qty: l.qty, selections: l.selections })),
     });
     setSubmitting(false);
     if (!res.ok) { setErr(res.error || "Something went wrong."); return; }
@@ -245,19 +250,28 @@ export default function Storefront({ vendor, groups }: { vendor: Vendor; groups:
                             <h3 className="truncate font-semibold capitalize text-ink">{d.name}</h3>
                           </div>
                           {d.description && <p className="truncate text-xs text-ink/50">{d.description}</p>}
-                          <p className="mt-0.5 text-sm font-semibold text-ink">{money(Number(d.price_cad))}</p>
+                          <p className="mt-0.5 text-sm font-semibold text-ink">{hasOptions(d.options) ? "from " : ""}{money(Number(d.price_cad))}</p>
                         </div>
-                        {d.is_sold_out ? (
-                          <span className="shrink-0 rounded-full bg-chili/10 px-3 py-1 text-xs font-semibold text-chili">Sold out</span>
-                        ) : cart[d.id] ? (
-                          <div className="flex shrink-0 items-center gap-0.5 rounded-full bg-spice/12 p-1 ring-1 ring-spice/25">
-                            <button onClick={() => set(d.id, -1)} aria-label="Remove one" className="grid h-7 w-7 place-items-center rounded-full text-lg font-bold text-spice transition hover:bg-spice/15">−</button>
-                            <span className="w-5 text-center text-sm font-semibold tabular-nums">{cart[d.id]}</span>
-                            <button onClick={() => set(d.id, +1)} aria-label="Add one" className="grid h-7 w-7 place-items-center rounded-full text-lg font-bold text-spice transition hover:bg-spice/15">+</button>
-                          </div>
-                        ) : (
-                          <button disabled={closed} onClick={() => set(d.id, +1)} aria-label={`Add ${d.name}`} className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-spice text-xl font-bold text-ink shadow-sm transition hover:brightness-[1.04] active:scale-95 disabled:opacity-40">+</button>
-                        )}
+                        {(() => {
+                          if (d.is_sold_out) return <span className="shrink-0 rounded-full bg-chili/10 px-3 py-1 text-xs font-semibold text-chili">Sold out</span>;
+                          const plain = cart.find((l) => l.key === d.id);
+                          const rowQty = cart.filter((l) => l.dish.id === d.id).reduce((s, l) => s + l.qty, 0);
+                          if (hasOptions(d.options)) return (
+                            <div className="flex shrink-0 items-center gap-2">
+                              {rowQty > 0 && <span className="rounded-full bg-spice/15 px-2 py-0.5 text-xs font-semibold text-[#9a5a14]">{rowQty} added</span>}
+                              <button disabled={closed} onClick={() => setSheetDish(d)} aria-label={`Add ${d.name}`} className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-spice text-xl font-bold text-ink shadow-sm transition hover:brightness-[1.04] active:scale-95 disabled:opacity-40">+</button>
+                            </div>
+                          );
+                          return plain ? (
+                            <div className="flex shrink-0 items-center gap-0.5 rounded-full bg-spice/12 p-1 ring-1 ring-spice/25">
+                              <button onClick={() => adjust(d.id, -1)} aria-label="Remove one" className="grid h-7 w-7 place-items-center rounded-full text-lg font-bold text-spice transition hover:bg-spice/15">−</button>
+                              <span className="w-5 text-center text-sm font-semibold tabular-nums">{plain.qty}</span>
+                              <button onClick={() => adjust(d.id, +1)} aria-label="Add one" className="grid h-7 w-7 place-items-center rounded-full text-lg font-bold text-spice transition hover:bg-spice/15">+</button>
+                            </div>
+                          ) : (
+                            <button disabled={closed} onClick={() => addConfigured(d, [])} aria-label={`Add ${d.name}`} className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-spice text-xl font-bold text-ink shadow-sm transition hover:brightness-[1.04] active:scale-95 disabled:opacity-40">+</button>
+                          );
+                        })()}
                       </div>
                     ))}
                   </div>
@@ -280,22 +294,23 @@ export default function Storefront({ vendor, groups }: { vendor: Vendor; groups:
               </button>
               {summaryOpen && (
                 <div className="border-t border-line px-4 pb-4 pt-3">
-                  {lines.length === 0 ? (
+                  {cart.length === 0 ? (
                     <p className="text-sm text-ink/50">Your cart is empty — go back and add a dish.</p>
                   ) : (
                     <div className="space-y-2.5">
-                      {lines.map((l) => (
-                        <div key={l.dish.id} className="flex items-center gap-3">
+                      {cart.map((l) => (
+                        <div key={l.key} className="flex items-center gap-3">
                           <div className="min-w-0 flex-1">
                             <p className="truncate text-sm font-semibold text-ink">{l.dish.name}</p>
-                            <p className="truncate text-xs text-ink/45">{money(Number(l.dish.price_cad))} each</p>
+                            {l.snapshot.length > 0 && <p className="truncate text-xs text-ink/55">{snapshotText(l.snapshot)}</p>}
+                            <p className="truncate text-xs text-ink/45">{money(l.unit)} each</p>
                           </div>
                           <div className="flex shrink-0 items-center gap-1 rounded-lg bg-spice/12 p-0.5 ring-1 ring-spice/20">
-                            <button type="button" aria-label="Remove one" onClick={() => set(l.dish.id, -1)} className="grid h-7 w-7 place-items-center rounded-md text-lg font-bold text-spice transition hover:bg-spice/15">−</button>
+                            <button type="button" aria-label="Remove one" onClick={() => adjust(l.key, -1)} className="grid h-7 w-7 place-items-center rounded-md text-lg font-bold text-spice transition hover:bg-spice/15">−</button>
                             <span className="min-w-[1.5rem] text-center text-sm font-semibold tabular-nums">{l.qty}</span>
-                            <button type="button" aria-label="Add one" onClick={() => set(l.dish.id, +1)} className="grid h-7 w-7 place-items-center rounded-md text-lg font-bold text-spice transition hover:bg-spice/15">+</button>
+                            <button type="button" aria-label="Add one" onClick={() => adjust(l.key, +1)} className="grid h-7 w-7 place-items-center rounded-md text-lg font-bold text-spice transition hover:bg-spice/15">+</button>
                           </div>
-                          <span className="min-w-[4.5rem] shrink-0 whitespace-nowrap text-right text-sm font-semibold text-ink tabular-nums">{money(Number(l.dish.price_cad) * l.qty)}</span>
+                          <span className="min-w-[4.5rem] shrink-0 whitespace-nowrap text-right text-sm font-semibold text-ink tabular-nums">{money(l.unit * l.qty)}</span>
                         </div>
                       ))}
                     </div>
@@ -381,6 +396,10 @@ export default function Storefront({ vendor, groups }: { vendor: Vendor; groups:
           </div>
         )}
       </div>
+
+      {sheetDish && (
+        <DishOptionsSheet dish={sheetDish} onClose={() => setSheetDish(null)} onAdd={(selections, qty) => { addConfigured(sheetDish, selections, qty); setSheetDish(null); }} />
+      )}
 
       <footer className="mt-12 pb-6 text-center">
         <a href="/" className="text-xs font-medium tracking-wide text-ink/30 transition hover:text-ink/50">Powered by Khao</a>

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Order, OrderItem } from "@/lib/types";
 import { menuItemsOf, menuPortion } from "@/lib/format";
+import { parseSnapshot, snapshotText } from "@/lib/options";
 
 type Row = Order & { order_items: OrderItem[] };
 
@@ -42,7 +43,10 @@ export async function GET(request: Request) {
   const lines = [header.join(",")];
   for (const o of rows) {
     const its = menuItemsOf(o.order_items, menu);
-    const items = its.map((it) => `${it.qty}x ${it.name_snapshot}${it.service_snapshot ? ` (${it.service_snapshot})` : ""}`).join("; ");
+    const items = its.map((it) => {
+      const opts = snapshotText(parseSnapshot(it.options_snapshot));
+      return `${it.qty}x ${it.name_snapshot}${it.service_snapshot ? ` (${it.service_snapshot})` : ""}${opts ? ` [${opts}]` : ""}`;
+    }).join("; ");
     const amount = menu === "all" ? Number(o.subtotal_cad) : menuPortion(o.order_items, menu);
     lines.push([
       new Date(o.created_at).toISOString(),

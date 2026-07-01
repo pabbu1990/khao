@@ -6,6 +6,7 @@ import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
 import OrderAge from "@/components/OrderAge";
 import { updateOrderStatus } from "@/app/actions";
 import { money, ORDER_STATUS_LABEL } from "@/lib/format";
+import { parseSnapshot, snapshotText } from "@/lib/options";
 import type { Order, OrderItem } from "@/lib/types";
 
 type OrderRow = Order & { order_items: OrderItem[] };
@@ -114,7 +115,7 @@ export default function LiveOrderCard({ o, compact }: { o: OrderRow; compact: bo
 
       <ul className={`${compact ? "mt-2" : "mt-3"} space-y-0.5 text-sm text-ink/80`}>
         {o.order_items.map((it) => (
-          <li key={it.id}>{it.qty} × {it.name_snapshot}{it.service_snapshot && <span className="text-ink/40"> · {it.service_snapshot}</span>}</li>
+          <li key={it.id}>{it.qty} × {it.name_snapshot}{it.service_snapshot && <span className="text-ink/40"> · {it.service_snapshot}</span>}{parseSnapshot(it.options_snapshot).length > 0 && <span className="block pl-3 text-xs text-ink/45">{snapshotText(parseSnapshot(it.options_snapshot))}</span>}</li>
         ))}
       </ul>
       {o.customer_note && <p className="mt-2 rounded-lg bg-panel px-3 py-2 text-sm italic text-ink/60">&ldquo;{o.customer_note}&rdquo;</p>}

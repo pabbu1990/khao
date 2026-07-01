@@ -19,6 +19,7 @@ const FEATURES = [
 ];
 
 const PRO_PERKS: [string, string][] = [
+  ["Weekly plans & subscriptions", "Let customers subscribe to recurring weekly meal plans — orders on autopilot."],
   ["SMS confirmations", "Auto-text customers the moment their order is confirmed."],
   ["Email receipts", "Branded order confirmations sent automatically."],
   ["“Order ready” alerts", "Ping customers by text when it’s ready for pickup."],
@@ -156,7 +157,7 @@ export default function Home() {
               <p className="mt-4 font-display text-4xl font-bold">Pro</p>
               <p className="mt-2 text-sm leading-relaxed text-cream/65">Everything in Free, plus the tools to take your business to the next level.</p>
               <ul className="mt-5 space-y-2.5 text-sm text-cream/85">
-                {["Analytics & insights", "Card payments at checkout", "SMS & email confirmations", "Custom branding", "Promo codes", "Priority support"].map((t) => (
+                {["Analytics & insights", "Card payments at checkout", "Weekly plans & subscriptions", "SMS & email confirmations", "Custom branding", "Priority support"].map((t) => (
                   <li key={t} className="flex items-center gap-2.5"><Tick /> {t}</li>
                 ))}
               </ul>
